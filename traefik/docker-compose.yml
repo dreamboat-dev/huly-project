@@ -1,0 +1,19 @@
+services:
+  traefik:
+    image: "traefik:${VERSION:?}" # if unset throws error
+    container_name: "${CONTAINER_NAME:-traefik}"
+    hostname: "${HOSTNAME:-traefik}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    ports:
+      - "${PUBLIC_HTTP_PORT:-80}:80"
+      - "${PUBLIC_HTTPS_PORT:-443}:443"
+    volumes:
+      - "${VOLUME_TRAEFIK:?}:/etc/traefik" # if unset throws error
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - "public-net"
+
+networks:
+  public-net:
+    driver: bridge
+    name: "public-net"

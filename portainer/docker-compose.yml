@@ -1,0 +1,17 @@
+services:
+  portainer:
+    image: "portainer/portainer-ce:${VERSION:?}" # if unset throws error
+    container_name: "${CONTAINER_NAME:-portainer}"
+    hostname: "${HOSTNAME:-portainer}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    ports:
+      - "${PUBLIC_PORT:-9443}:9443"
+    volumes:
+      - "${VOLUME_DATA:?}:/data" # if unset throws error
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - "public-net"
+
+networks:
+  public-net:
+    external: true
