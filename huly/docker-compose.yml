@@ -10,7 +10,9 @@ services:
     restart: ${MONGODB_RESTART_POLICY:-unless-stopped}
     networks:
       - internal-services
+    # TODO (dreamboat-dev) change log level
 
+  # TODO (dreamboat-dev) check if postgres would work instead of mongodb
   # postgres:
   #   image: postgres:${PSOTGRES_IMAGE_TAG:-latest}
   #   container_name: ${POSTGRES_CONTAINER_NAME:-postgres}
