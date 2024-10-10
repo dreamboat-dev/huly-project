@@ -19,10 +19,13 @@ services:
 
   mongodb:
     image: "mongo:7-jammy"
-    container_name: mongodb
+    container_name: ${MONGODB_CONTAINER_NAME}
+    hostname: ${MONGODB_HOSTNAME}
     environment:
       - PUID=1000
       - PGID=1000
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
     volumes:
       - db:/data/db
       - dbconf:/data/configdb
@@ -57,7 +60,9 @@ services:
       - internal-net
 
   minio:
-    image: "minio/minio"
+    image: "minio/minio:${MINIO_IMAGE_TAG:?}"
+    container_name: ${MINIO_CONTAINER_NAME:-minio}
+    hostname: ${MINIO_HOSTNAME:-minio}
     command: server /data --address ":9000" --console-address ":9001"
     volumes:
       - files:/data
@@ -91,7 +96,7 @@ services:
       - SERVER_CURSOR_MAXTIMEMS=30000
       - ELASTIC_URL=http://elastic:9200
       - ELASTIC_INDEX_NAME=huly_storage_index
-      - MONGO_URL=mongodb://mongodb:27017
+      - MONGO_URL=${MONGODB_URL}
       - METRICS_CONSOLE=false
       - METRICS_FILE=metrics.txt
       - STORAGE_CONFIG=${STORAGE_CONFIG}
@@ -113,7 +118,7 @@ services:
       - COLLABORATOR_PORT=3078
       - SECRET=${HULY_SECRET}
       - ACCOUNTS_URL=http://account:3000
-      - MONGO_URL=mongodb://mongodb:27017
+      - MONGO_URL=${MONGODB_URL}
       - STORAGE_CONFIG=${STORAGE_CONFIG}
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
@@ -126,7 +131,7 @@ services:
     environment:
       - SERVER_PORT=3000
       - SERVER_SECRET=${HULY_SECRET}
-      - MONGO_URL=mongodb://mongodb:27017
+      - MONGO_URL=${MONGODB_URL}
       - TRANSACTOR_URL=ws://transactor:3333;${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_transactor
       - STORAGE_CONFIG=${STORAGE_CONFIG}
       - FRONT_URL=http://front:8080
@@ -143,7 +148,7 @@ services:
     image: hardcoreeng/workspace:${HULY_VERSION}
     environment:
       - SERVER_SECRET=${HULY_SECRET}
-      - MONGO_URL=mongodb://mongodb:27017
+      - MONGO_URL=${MONGODB_URL}
       - TRANSACTOR_URL=ws://transactor:3333;${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_transactor
       - STORAGE_CONFIG=${STORAGE_CONFIG}
       - MODEL_ENABLED=*
@@ -169,7 +174,7 @@ services:
       - ELASTIC_URL=http://elastic:9200
       - COLLABORATOR_URL=${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_collaborator
       - STORAGE_CONFIG=${STORAGE_CONFIG}
-      - MONGO_URL=mongodb://mongodb:27017
+      - MONGO_URL=${MONGODB_URL}
       - TITLE=Huly Self Host
       - DEFAULT_LANGUAGE=en
       - LAST_NAME_FIRST=true
