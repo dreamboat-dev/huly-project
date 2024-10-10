@@ -4,6 +4,12 @@ x-defaults: &defaults # default values every container gets
     - /etc/timezone:/etc/timezone:ro # text-based representation of hosts timezone
     - /etc/localtime:/etc/localtime:ro # binary representation of rules used to calculate hosts time relative to unix time
 
+# =============================================================================
+# === IMPORTANT
+# some hostnames are also specified in "nginx.conf"
+# thus if changed here, they must also be changed there
+# =============================================================================
+
 services:
   nginx:
     image: "nginx:1.21.3"
@@ -51,7 +57,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${ELASTIC_MAX_MEMORY:-500M} # max memory the elastic container is allowed to use
+          memory: ${ELASTIC_MAX_MEMORY:-1G} # max memory the elastic container is allowed to use
     healthcheck:
       interval: 20s
       retries: 10
@@ -80,12 +86,14 @@ services:
 
   rekoni:
     image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:?}
+    container_name: ${REKONI_CONTAINER_NAME:-rekoni}
+    hostname: ${REKONI_HOSTNAME:-rekoni}
     environment:
       - SECRET=${HULY_SECRET:?} # secret for huly
     deploy:
       resources:
         limits:
-          memory: 500M
+          memory: ${REKONI_MAX_MEMORY:-500M}
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
     networks:
