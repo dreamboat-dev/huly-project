@@ -45,6 +45,8 @@ services:
     image: "elasticsearch:${ELASTIC_IMAGE_TAG:?}"
     container_name: ${ELASTIC_CONTAINER_NAME:-elastic} # display name of container
     hostname: ${ELASTIC_HOSTNAME:-elastic} # hostname of container
+    # check if "ingest-attachment" plugin is installed, if not install it
+    # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
       /bin/sh -c "./bin/elasticsearch-plugin list | grep --quiet ingest-attachment ||
                   yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
@@ -53,15 +55,20 @@ services:
       - elastic:/usr/share/elasticsearch/data
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200} # TODO check if ELASTICSEARCH_PORT_NUMBER is internal or external
-      - ES_SETTING_DISCOVERY_TYPE=${ELASTIC_DISCOVERY_TYPE:-single-node} # https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery-settings.html
+      - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node} # elasticsearch has only one node; that node will elect itself master nad will not join a cluster
     deploy:
       resources:
         limits:
           memory: ${ELASTIC_MAX_MEMORY:-1G} # max memory the elastic container is allowed to use
     healthcheck:
+      # status:
+      #   red: share is not allocated
+      #   yellow: primary shard is allocated but replicas are not
+      #   green. all shards are allocated
+      test: ["CMD-SHELL", "curl --silent http://localhost:9200/_cluster/health | grep --quiet '\"status\":\"green\"'"]
       interval: 20s
       retries: 10
-      test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+      timeout: 10s
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
     networks:
