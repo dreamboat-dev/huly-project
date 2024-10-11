@@ -93,8 +93,8 @@ services:
 
   rekoni:
     image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:?}
-    container_name: ${REKONI_CONTAINER_NAME:-rekoni}
-    hostname: ${REKONI_HOSTNAME:-rekoni}
+    container_name: ${REKONI_CONTAINER_NAME:-rekoni} # display name of container
+    hostname: ${REKONI_HOSTNAME:-rekoni} # hostname of container
     environment:
       - SECRET=${HULY_SECRET:?} # secret for huly
     deploy:
@@ -109,21 +109,23 @@ services:
 
   transactor:
     image: hardcoreeng/transactor:${HULY_IMAGE_TAG:?}
+    container_name: ${TRANSACTOR_CONTAINER_NAME:-transactor} # display name of container
+    hostname: ${TRANSACTOR_HOSTNAME:-transactor} # hostname of container
     environment:
-      - SERVER_PORT=3333
+      - SERVER_PORT=${TRANSACTOR_PORT:-3333}
       - SERVER_SECRET=${HULY_SECRET:?} # secret for huly
-      - SERVER_CURSOR_MAXTIMEMS=30000
+      - SERVER_CURSOR_MAXTIMEMS=${TRANSACTOR_SERVER_CURSOR_MAXTIMEMS:-30000} # https://www.mongodb.com/docs/manual/reference/method/cursor.maxTimeMS/
       - ELASTIC_URL=${ELASTIC_URL} # link to elastic container
-      - ELASTIC_INDEX_NAME=huly_storage_index
+      - ELASTIC_INDEX_NAME=${ELASTIC_INDEX_NAME:-huly_storage_index}
       - MONGO_URL=${MONGODB_URL} # link to mongodb
-      - METRICS_CONSOLE=false
-      - METRICS_FILE=metrics.txt
+      - METRICS_CONSOLE=${TRANSACTOR_METRICS_CONSOLE:-false}
+      - METRICS_FILE=${TRANSACTOR_METRICS_FILE:-metrics.txt}
       - STORAGE_CONFIG=${STORAGE_CONFIG} # minio config: minio|${HOSTNAME}?accessKey=${USERNAME}&secretKey=${PASSWORD}
-      - REKONI_URL=http://rekoni:4004
+      - REKONI_URL=${REKONI_URL:-http://${REKONI_HOSTNAME}:${REKONI_PORT}}
       - FRONT_URL=http://localhost:8087
-      - ACCOUNTS_URL=http://account:3000
-      - LAST_NAME_FIRST=true
-      - UPLOAD_URL=${NGINX_HTTP_SCHEME}://${SERVER_ADDRESS}/files
+      - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
+      - LAST_NAME_FIRST=${HULY_CONFIG_LAST_NAME_FIRST:-true}
+      - UPLOAD_URL=${UPLOAD_URL:-${NGINX_HTTP_SCHEME}://${SERVER_ADDRESS}/files}
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
     networks:
@@ -133,10 +135,12 @@ services:
 
   collaborator:
     image: hardcoreeng/collaborator:${HULY_IMAGE_TAG:?}
+    container_name: ${COLLABORATOR_CONTAINER_NAME:-collaborator}
+    hostname: ${COLLABORATOR_HOSTNAME:-collaborator}
     environment:
-      - COLLABORATOR_PORT=3078
+      - COLLABORATOR_PORT=${COLLABORATOR_PORT:-3078}
       - SECRET=${HULY_SECRET:?} # secret for huly
-      - ACCOUNTS_URL=http://account:3000
+      - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
       - MONGO_URL=${MONGODB_URL} # link to mongodb
       - STORAGE_CONFIG=${STORAGE_CONFIG} # minio config: minio|${HOSTNAME}?accessKey=${USERNAME}&secretKey=${PASSWORD}
     <<: [*defaults] # array of anchors ("templates") the container gets
@@ -147,16 +151,18 @@ services:
 
   account:
     image: hardcoreeng/account:${HULY_IMAGE_TAG:?}
+    container_name: ${ACCOUNT_CONTAINER_NAME:-account}
+    hostname: ${ACCOUNT_HOSTNAME:-account}
     environment:
-      - SERVER_PORT=3000
+      - SERVER_PORT=${ACCOUNT_PORT:-3000}
       - SERVER_SECRET=${HULY_SECRET:?} # secret for huly
       - MONGO_URL=${MONGODB_URL} # link to mongodb
-      - TRANSACTOR_URL=ws://transactor:3333;${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_transactor
+      - TRANSACTOR_URL=${TRANSACTOR_URL:-ws://transactor:${TRANSACTOR_PORT};${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_transactor}
       - STORAGE_CONFIG=${STORAGE_CONFIG} # minio config: minio|${HOSTNAME}?accessKey=${USERNAME}&secretKey=${PASSWORD}
       - FRONT_URL=http://front:8080
       - MODEL_ENABLED=*
-      - ACCOUNTS_URL=http://localhost:3000
-      - ACCOUNT_PORT=3000
+      - ACCOUNT_PORT=${ACCOUNT_PORT}
+      - ACCOUNTS_URL=${ACCOUNT_LOCALHOST_URL:-http://localhost:${ACCOUNT_PORT}}
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
     networks:
@@ -168,10 +174,10 @@ services:
     environment:
       - SERVER_SECRET=${HULY_SECRET:?} # secret for huly
       - MONGO_URL=${MONGODB_URL} # link to mongodb
-      - TRANSACTOR_URL=ws://transactor:3333;${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_transactor
+      - TRANSACTOR_URL=${TRANSACTOR_URL:-ws://transactor:${TRANSACTOR_PORT};${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_transactor}
       - STORAGE_CONFIG=${STORAGE_CONFIG} # minio config: minio|${HOSTNAME}?accessKey=${USERNAME}&secretKey=${PASSWORD}
       - MODEL_ENABLED=*
-      - ACCOUNTS_URL=http://account:3000
+      - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
       - NOTIFY_INBOX_ONLY=true
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
@@ -191,7 +197,7 @@ services:
       - TELEGRAM_URL=${NGINX_HTTP_SCHEME}://${SERVER_ADDRESS}/_telegram
       - UPLOAD_URL=/files
       - ELASTIC_URL=${ELASTIC_URL} # link to elastic container
-      - COLLABORATOR_URL=${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_collaborator
+      - COLLABORATOR_URL=${COLLABORATOR_URL:-${NGINX_WS_SCHEME}://${SERVER_ADDRESS}/_collaborator}
       - STORAGE_CONFIG=${STORAGE_CONFIG} # minio config: minio|${HOSTNAME}?accessKey=${USERNAME}&secretKey=${PASSWORD}
       - MONGO_URL=${MONGODB_URL} # link to mongodb
       - TITLE=Huly Self Host
