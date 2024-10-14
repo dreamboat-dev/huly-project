@@ -28,8 +28,8 @@ services:
     container_name: ${MONGODB_CONTAINER_NAME:-mongodb} # display name of container
     hostname: ${MONGODB_HOSTNAME:-mongodb} # hostname of container
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=${MONGODB_PUID}
+      - PGID=${MONGODB_PGID}
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-huly} # username for huly database
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:?} # password for huly database
     volumes:
