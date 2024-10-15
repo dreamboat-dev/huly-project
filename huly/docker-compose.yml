@@ -31,8 +31,14 @@ services:
       options:
         max-size: ${NGINX_LOGGING_MAX_SIZE:-10m} # max. size of log file
         max-file: ${NGINX_LOGGING_MAX_FILE:-3} # max. number of log files
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost" ] # 
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     volumes:
-      - ${NGINX_CONFIG:?}:/etc/nginx/conf.d/default.conf # path to the nginx config for huly
+      - ${NGINX_CONFIG:?}:/etc/nginx/conf.d/default.conf:ro # path to the nginx config for huly, mounted as read-only
     ports:
       - ${NGINX_SERVICE_PORT:-80}:80 # public port for the web server
     networks:
