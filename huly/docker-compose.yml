@@ -1,5 +1,5 @@
 x-defaults: &defaults # default values every container gets
-  restart: unless-stopped # always restart, unless the container has been manually stopped
+  restart: ${RESTART_POLICY:-unless-stopped} # always restart, unless the container has been manually stopped
   env_file:
     - "./.env"
   volumes:
@@ -7,6 +7,11 @@ x-defaults: &defaults # default values every container gets
     - /etc/localtime:/etc/localtime:ro # binary representation of rules used to calculate hosts time relative to unix time
   networks:
     - internal-net
+  logging:
+    driver: ${LOGGING_DRIVER:-json-file}
+    options:
+      max-size: ${LOGGING_MAX_SIZE:-10m}
+      max-file: ${LOGGING_MAX_FILE:-3}
 
 # =============================================================================
 # === IMPORTANT
@@ -15,62 +20,34 @@ x-defaults: &defaults # default values every container gets
 # =============================================================================
 
 services:
-  huly-nginx:
-    image: nginx:${NGINX_IMAGE_TAG:?}
-    container_name: ${NGINX_CONTAINER_NAME:-nginx} # display name of container
-    hostname: ${NGINX_HOSTNAME:-nginx} # hostname of container
-    <<: [*defaults] # array of anchors ("templates") the container gets
-    # using an array so it can be expanded with more anchors
-    deploy:
-      resources:
-        limits:
-          memory: ${NGINX_MAX_MEMORY:-1G} # max memory the container can use
-          cpus: ${NGINX_MAX_CPUS:-0.5} # max number of cores the container can use
-    logging:
-      driver: ${NGINX_LOGGING_DRIVER:-json-file} # logging driver
-      options:
-        max-size: ${NGINX_LOGGING_MAX_SIZE:-10m} # max. size of log file
-        max-file: ${NGINX_LOGGING_MAX_FILE:-3} # max. number of log files
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost" ] # test connection to nginx
-      interval: ${NGINX_HEALTHCHECK_INTERVAL:-30s}
-      timeout: ${NGINX_HEALTHCHECK_TIMEOUT:-5s}
-      retries: ${NGINX_HEALTHCHECK_RETRIES:-3}
-      start_period: ${NGINX_HEALTHCHECK_START_PERIOD:-10s}
-    volumes:
-      - ${NGINX_CONFIG:?}:/etc/nginx/conf.d/default.conf:ro # path to the nginx config for huly, mounted as read-only
-    ports:
-      - ${NGINX_PORT:-80}:80 # public port for the web server
-    networks:
-      - internal-net
-      - public-net
-
   mongodb:
-    image: "mongo:${MONGODB_IMAGE_TAG:?}"
-    container_name: ${MONGODB_CONTAINER_NAME:-mongodb} # display name of container
-    hostname: ${MONGODB_HOSTNAME:-mongodb} # hostname of container
+    image: mongo:${MONGODB_IMAGE_TAG:?}
+    container_name: ${MONGODB_CONTAINER_NAME:-mongodb}
+    hostname: ${MONGODB_HOSTNAME:-mongodb}
+    <<: [*defaults]
+    healthcheck:
+      test: [
+        "CMD", 
+        "mongosh", "--eval", "'(db.runCommand({ ping: 1 }).ok ? 0 : 1)'"
+      ]
+      # TODO (dreamboat-dev) check if settings for healthcheck make sense
+      interval: ${MONGODB_HEALTHCHECK_INTERVAL:-10s}
+      timeout: ${MONGODB_HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${MONGODB_HEALTHCHECK_RETRIES:-5}
+      start_period: ${MONGODB_HEALTHCHECK_START_PERIOD:-30s}
+    volumes:
+      - db:/data/db # TODO (dreamboat-dev) local path
+      - dbconf:/data/configdb # TODO (dreamboat-dev) local path
     environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-huly}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:?}
       - PUID=${MONGODB_PUID:-1000}
       - PGID=${MONGODB_PGID:-1000}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-huly} # username for huly database
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:?} # password for huly database
-    volumes:
-      - db:/data/db
-      - dbconf:/data/configdb
-    <<: [*defaults] # array of anchors ("templates") the container gets
-    # using an array so it can be expanded with more anchors
-    # TODO set log level
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: 0.5
-
 
   elastic:
-    image: "elasticsearch:${ELASTIC_IMAGE_TAG:?}"
-    container_name: ${ELASTIC_CONTAINER_NAME:-elastic} # display name of container
-    hostname: ${ELASTIC_HOSTNAME:-elastic} # hostname of container
+    image: elasticsearch:${ELASTIC_IMAGE_TAG:?}
+    container_name: ${ELASTIC_CONTAINER_NAME:-elastic}
+    hostname: ${ELASTIC_HOSTNAME:-elastic}
     # check if "ingest-attachment" plugin is installed, if not install it
     # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
@@ -82,15 +59,12 @@ services:
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200} # TODO check if ELASTICSEARCH_PORT_NUMBER is internal or external
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node} # elasticsearch has only one node; that node will elect itself master nad will not join a cluster
-    deploy:
-      resources:
-        limits:
-          memory: ${ELASTIC_MAX_MEMORY:-1G} # max memory the elastic container is allowed to use
     healthcheck:
       # status:
       #   red: share is not allocated
       #   yellow: primary shard is allocated but replicas are not
       #   green. all shards are allocated
+      # TODO (dreamboat-dev) something about this healtcheck doesnt work
       test: [
         "CMD-SHELL",
         "curl --silent http://localhost:9200/_cluster/health | grep --quiet '\"status\":\"green\"'"
@@ -98,6 +72,7 @@ services:
       interval: 20s
       retries: 10
       timeout: 10s
+      # TODO start period
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
 
@@ -122,10 +97,6 @@ services:
     hostname: ${REKONI_HOSTNAME:-rekoni} # hostname of container
     environment:
       - SECRET=${HULY_SECRET:?} # secret for huly
-    deploy:
-      resources:
-        limits:
-          memory: ${REKONI_MAX_MEMORY:-500M}
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
     networks:
@@ -230,6 +201,26 @@ services:
       - LAST_NAME_FIRST=true
     <<: [*defaults] # array of anchors ("templates") the container gets
     # using an array so it can be expanded with more anchors
+    networks:
+      - internal-net
+      - public-net
+
+  huly-nginx:
+    image: nginx:${NGINX_IMAGE_TAG:?}
+    container_name: ${NGINX_CONTAINER_NAME:-nginx} # display name of container
+    hostname: ${NGINX_HOSTNAME:-nginx} # hostname of container
+    <<: [*defaults] # array of anchors ("templates") the container gets
+    # using an array so it can be expanded with more anchors
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost" ] # test connection to nginx
+      interval: ${NGINX_HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${NGINX_HEALTHCHECK_TIMEOUT:-5s}
+      retries: ${NGINX_HEALTHCHECK_RETRIES:-3}
+      start_period: ${NGINX_HEALTHCHECK_START_PERIOD:-10s}
+    volumes:
+      - ${NGINX_CONFIG:?}:/etc/nginx/conf.d/default.conf:ro # path to the nginx config for huly, mounted as read-only
+    ports:
+      - ${NGINX_PORT:-80}:80 # public port for the web server
     networks:
       - internal-net
       - public-net
