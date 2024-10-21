@@ -33,7 +33,7 @@ main() {
         apt install --assume-yes ca-certificates \
                                  curl
         install --mode=0755 \
-                --directory=/etc/apt/keyrings
+                --directory /etc/apt/keyrings
         curl --fail \
              --silent \
              --show-error \
