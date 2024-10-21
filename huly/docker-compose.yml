@@ -30,8 +30,8 @@ services:
       retries: ${MONGODB_HEALTHCHECK_RETRIES}
       start_period: ${MONGODB_HEALTHCHECK_START_PERIOD}
     volumes:
-      - mongodb-data/data/db
-      - mongodb-conf/data/configdb
+      - mongodb-data:/data/db
+      - mongodb-conf:/data/configdb
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
