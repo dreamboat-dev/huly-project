@@ -116,7 +116,7 @@ services:
       - FRONT_URL=${FRONT_URL} 
       - ACCOUNTS_URL=${ACCOUNT_URL} 
       - LAST_NAME_FIRST=${HULY_CONFIG_LAST_NAME_FIRST} 
-      - UPLOAD_URL=${UPLOAD_URL} 
+      - UPLOAD_URL=${TRANSACTOR_UPLOAD_URL} 
     networks:
       - internal-net
       - public-net
@@ -148,7 +148,7 @@ services:
       - TRANSACTOR_URL=${TRANSACTOR_URL}
       - STORAGE_CONFIG=${STORAGE_CONFIG}
       - FRONT_URL=${FRONT_URL}
-      - MODEL_ENABLED=*
+      - MODEL_ENABLED=${ACCOUNT_MODEL_ENABLED}
       - ACCOUNT_PORT=${ACCOUNT_PORT}
       - ACCOUNTS_URL=${ACCOUNT_URL}
     networks:
@@ -165,7 +165,7 @@ services:
       - MONGO_URL=${MONGODB_URL} 
       - TRANSACTOR_URL=${TRANSACTOR_URL}
       - STORAGE_CONFIG=${STORAGE_CONFIG}
-      - MODEL_ENABLED=*
+      - MODEL_ENABLED=${WORKSPACE_MODEL_ENABLED}
       - ACCOUNTS_URL=${ACCOUNT_URL} 
       - NOTIFY_INBOX_ONLY=true 
     networks:
@@ -186,13 +186,13 @@ services:
       - GMAIL_URL=${PUBLIC_GMAIL_URL}
       - TELEGRAM_URL=${PUBLIC_TELEGRAM_URL}
       - COLLABORATOR_URL=${PUBLIC_COLLABORATOR_URL}
-      - UPLOAD_URL=/files 
+      - UPLOAD_URL=${FRONT_UPLOAD_URL} 
       - ELASTIC_URL=${ELASTIC_URL} 
       - STORAGE_CONFIG=${STORAGE_CONFIG}
       - MONGO_URL=${MONGODB_URL} 
-      - TITLE=Huly Self Host 
-      - DEFAULT_LANGUAGE=en 
-      - LAST_NAME_FIRST=true 
+      - TITLE=${HULY_CONFIG_TITLE}
+      - DEFAULT_LANGUAGE=${HULY_CONFIG_DEFAULT_LANGUAGE}
+      - LAST_NAME_FIRST=${HULY_CONFIG_LAST_NAME_FIRST}
     networks:
       - internal-net
       - public-net
