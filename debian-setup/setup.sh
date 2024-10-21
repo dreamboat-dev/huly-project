@@ -11,7 +11,7 @@ main() {
         exit 1
     fi
 
-    read --prompt "Enter the Username of your non-sudo user: " non_sudo_username
+    read -p "Enter the Username of your non-sudo user: " non_sudo_username
 
     # copy sources.list
     setup_apt_repos() {
