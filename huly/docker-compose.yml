@@ -226,4 +226,5 @@ volumes:
   mongodb-data:
   mongodb-conf:
   elastic-data:
+  elastic-logs:
   minio-data:
