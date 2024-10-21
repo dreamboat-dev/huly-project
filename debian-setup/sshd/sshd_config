@@ -1,0 +1,22 @@
+# === ADDITIONAL CONFIGS ===
+Include /etc/ssh/sshd_config.d/*.conf
+
+# === SSH PORT ===
+Port 22
+
+# === AUTHENTICATION ===
+# "LoginGraceTime 0" prevents the race condition called "RegreSSHion (CVE-2024-6387)"
+# https://nvd.nist.gov/vuln/detail/CVE-2024-6387
+LoginGraceTime 0
+PermitRootLogin prohibit-password
+StrictModes yes
+MaxAuthTries 3
+MaxSessions 10
+
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+PasswordAuthentication yes
+PermitEmptyPasswords no
+
+KbdInteractiveAuthentication no
+UsePAM yes

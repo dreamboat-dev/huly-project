@@ -1,0 +1,36 @@
+# ==================================================================================================================
+# SOURCES FOR APT PACKAGE MANAGER
+#
+# structure:
+# [archive-type] [repository-url] [distribution] [component]
+#
+#   archive-type:
+#       - deb:                  binary packages
+#       - deb-src:              source code of packages
+#   repository-url:             url for the repository
+#   distribution:
+#       - bookworm:             main repository
+#       - bookworm-security:    security updates
+#       - bookworm-updates:     general updates
+#       - bookworm-backports:   more up-to-date packages from "testing" branch
+#   component:
+#       - main:                 DFSG (Debian Free Software Guidelines) compatible packages
+#       - contrib:              DFSG compatible packages with non-free dependencies
+#       - non-free(-firmware):  non-free packages (not DFSG compatible software)
+# ==================================================================================================================
+
+# === BOOKWORM
+    deb http://deb.debian.org/debian/               bookworm            main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian/               bookworm            main contrib non-free non-free-firmware
+
+# === BOOKWORM SECURITY
+    deb http://security.debian.org/debian-security  bookworm-security   main contrib non-free non-free-firmware
+deb-src http://security.debian.org/debian-security  bookworm-security   main contrib non-free non-free-firmware
+
+# === BOOKWORM UPDATES
+    deb http://deb.debian.org/debian/               bookworm-updates    main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian/               bookworm-updates    main contrib non-free non-free-firmware
+
+# === BOOKWORM BACKPORTS
+    deb http://deb.debian.org/debian/               bookworm-backports  main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian/               bookworm-backports  main contrib non-free non-free-firmware

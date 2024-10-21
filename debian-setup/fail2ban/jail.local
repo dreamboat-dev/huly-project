@@ -1,0 +1,24 @@
+# time unit: seconds
+
+[DEFAULT]
+
+bantime.increment = true
+bantime.factor = 1
+bantime.formula = ban.Time * math.exp(float(ban.Count+1)*banFactor)/math.exp(1*banFactor)
+bantime.multipliers = 1 2 4 8 16 32 64
+bantime.overalljails = true
+
+ignoreself = true
+ignoreip = 127.0.0.1/8 ::1
+
+[sshd]
+
+enabled   = true
+mode      = aggressive
+port      = 22
+logpath   = %(sshd_log)s
+backend   = systemd
+maxretrys = 3
+findtime  = 600 ; ( = 10 min )
+bantime   = 14400 ; ( = 4 h )
+action    = iptables-allports
