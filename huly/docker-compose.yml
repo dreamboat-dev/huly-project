@@ -14,7 +14,7 @@ x-defaults: &defaults
       max-file: ${LOGGING_MAX_FILE}
 
 services:
-  mongodb:
+  huly-mongodb:
     image: mongo:${MONGODB_IMAGE_TAG}
     container_name: ${MONGODB_CONTAINER_NAME}
     hostname: ${MONGODB_HOSTNAME}
@@ -38,7 +38,7 @@ services:
       - PUID=${MONGODB_PUID}
       - PGID=${MONGODB_PGID}
 
-  elastic:
+  huly-elastic:
     image: elasticsearch:${ELASTIC_IMAGE_TAG}
     container_name: ${ELASTIC_CONTAINER_NAME}
     hostname: ${ELASTIC_HOSTNAME}
@@ -62,7 +62,7 @@ services:
                   yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
                   /usr/local/bin/docker-entrypoint.sh eswrapper"
 
-  minio:
+  huly-minio:
     image: "minio/minio:${MINIO_IMAGE_TAG}"
     container_name: ${MINIO_CONTAINER_NAME} 
     hostname: ${MINIO_HOSTNAME} 
@@ -85,7 +85,7 @@ services:
       server /data --address ":9000"
                    --console-address ":9001"
 
-  rekoni:
+  huly-rekoni:
     image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG}
     container_name: ${REKONI_CONTAINER_NAME} 
     hostname: ${REKONI_HOSTNAME} 
@@ -97,7 +97,7 @@ services:
       - internal-net
       - public-net
 
-  transactor:
+  huly-transactor:
     image: hardcoreeng/transactor:${HULY_IMAGE_TAG}
     container_name: ${TRANSACTOR_CONTAINER_NAME} 
     hostname: ${TRANSACTOR_HOSTNAME} 
@@ -121,7 +121,7 @@ services:
       - internal-net
       - public-net
 
-  collaborator:
+  huly-collaborator:
     image: hardcoreeng/collaborator:${HULY_IMAGE_TAG}
     container_name: ${COLLABORATOR_CONTAINER_NAME}
     hostname: ${COLLABORATOR_HOSTNAME}
@@ -136,7 +136,7 @@ services:
       - internal-net
       - public-net
 
-  account:
+  huly-account:
     image: hardcoreeng/account:${HULY_IMAGE_TAG}
     container_name: ${ACCOUNT_CONTAINER_NAME}
     hostname: ${ACCOUNT_HOSTNAME}
@@ -155,7 +155,7 @@ services:
       - internal-net
       - public-net
 
-  workspace:
+  huly-workspace:
     image: hardcoreeng/workspace:${HULY_IMAGE_TAG}
     container_name: ${WORKSPACE_CONTAINER_NAME}
     hostname: ${WORKSPACE_HOSTNAME}
@@ -172,7 +172,7 @@ services:
       - internal-net
       - public-net
 
-  front:
+  huly-front:
     image: hardcoreeng/front:${HULY_IMAGE_TAG}
     container_name: ${FRONT_CONTAINER_NAME}
     hostname: ${FRONT_HOSTNAME}
@@ -196,8 +196,6 @@ services:
     networks:
       - internal-net
       - public-net
-
-
 
   huly-nginx:
     image: nginx:${NGINX_IMAGE_TAG}
