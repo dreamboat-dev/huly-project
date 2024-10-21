@@ -6,7 +6,7 @@ x-defaults: &defaults
     - /etc/timezone:/etc/timezone:ro
     - /etc/localtime:/etc/localtime:ro
   networks:
-    - internal-net
+    - huly-internal-net
   logging:
     driver: ${LOGGING_DRIVER:-json-file}
     options:
@@ -84,8 +84,8 @@ services:
     environment:
       - SECRET=${HULY_SECRET:?}
     networks:
-      - internal-net
-      - public-net
+      - huly-internal-net
+      - huly-public-net
 
   huly-transactor:
     image: hardcoreeng/transactor:${HULY_IMAGE_TAG:-v0.6.313}
@@ -108,8 +108,8 @@ services:
       - LAST_NAME_FIRST=${HULY_CONFIG_LAST_NAME_FIRST:-true}
       - UPLOAD_URL=${TRANSACTOR_UPLOAD_URL:-${HTTP_SCHEME}://${SERVER_ADDRESS}/files}
     networks:
-      - internal-net
-      - public-net
+      - huly-internal-net
+      - huly-public-net
 
   huly-collaborator:
     image: hardcoreeng/collaborator:${HULY_IMAGE_TAG:-v0.6.313}
@@ -123,8 +123,8 @@ services:
       - MONGO_URL=${MONGODB_URL:-mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOSTNAME}:${MONGODB_PORT}}
       - STORAGE_CONFIG=${STORAGE_CONFIG:-minio|${MINIO_HOSTNAME}?accessKey=${MINIO_ROOT_USER}&secretKey=${MINIO_ROOT_PASSWORD}}
     networks:
-      - internal-net
-      - public-net
+      - huly-internal-net
+      - huly-public-net
 
   huly-account:
     image: hardcoreeng/account:${HULY_IMAGE_TAG:-v0.6.313}
@@ -142,8 +142,8 @@ services:
       - ACCOUNT_PORT=${ACCOUNT_PORT:-3000}
       - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
     networks:
-      - internal-net
-      - public-net
+      - huly-internal-net
+      - huly-public-net
 
   huly-workspace:
     image: hardcoreeng/workspace:${HULY_IMAGE_TAG:-v0.6.313}
@@ -159,8 +159,8 @@ services:
       - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
       - NOTIFY_INBOX_ONLY=${HULY_CONFIG_NOTIFY_INBOX_ONLY:-true}
     networks:
-      - internal-net
-      - public-net
+      - huly-internal-net
+      - huly-public-net
 
   huly-front:
     image: hardcoreeng/front:${HULY_IMAGE_TAG:-v0.6.313}
@@ -184,8 +184,8 @@ services:
       - DEFAULT_LANGUAGE=${HULY_CONFIG_DEFAULT_LANGUAGE:-en}
       - LAST_NAME_FIRST=${HULY_CONFIG_LAST_NAME_FIRST:-true}
     networks:
-      - internal-net
-      - public-net
+      - huly-internal-net
+      - huly-public-net
 
   huly-nginx:
     image: nginx:${NGINX_IMAGE_TAG:-1.21.3}
@@ -203,23 +203,23 @@ services:
     ports:
       - ${NGINX_PORT:-80}:80
     networks:
-      - internal-net
-      - public-net
+      - huly-internal-net
+      - huly-public-net
 
 networks:
-  public-net:
-    name: public-net
-  internal-net:
-    name: internal-net
+  huly-public-net:
+    name: ${PUBLIC_NET:-huly-public-net}
+  huly-internal-net:
+    name: ${INTERNAL_NET:-huly-internal-net}
 
 volumes:
   huly-mongodb-data:
-    name: huly-mongodb-data
+    name: ${MONGODB_DATA_VOLUME:-huly-mongodb-data}
   huly-mongodb-conf:
-    name: huly-mongodb-conf
+    name: ${MONGODB_CONF_VOLUME:-huly-mongodb-conf}
   huly-elastic-data:
-    name: huly-elastic-data
+    name: ${ELASTIC_DATA_VOLUME:-huly-elastic-data}
   huly-elastic-logs:
-    name: huly-elastic-logs
+    name: ${ELASTIC_LOGS_VOLUME:-huly-elastic-logs}
   huly-minio-data:
-    name: huly-minio-data
+    name: ${MINIO_DATA_VOLUME:-huly-minio-data}
