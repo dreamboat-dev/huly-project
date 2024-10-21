@@ -32,13 +32,17 @@ main() {
         apt update
         apt install --assume-yes ca-certificates \
                                  curl
-        install -m 0755 -d /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+        install --mode=0755 \
+                --directory=/etc/apt/keyrings
+        curl --fail \
+             --silent \
+             --show-error \
+             "https://download.docker.com/linux/debian/gpg" \
+             --output "/etc/apt/keyrings/docker.asc"
         chmod a+r /etc/apt/keyrings/docker.asc
 
         # add apt repository
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-        tee /etc/apt/sources.list.d/docker.list > /dev/null
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list
         apt update
 
         # install docker packages
@@ -70,11 +74,14 @@ main() {
         # install openssh server package
         apt install --assume-yes openssh-server
 
-        # create necessary directories with permissions
-        mkdir ~/.ssh 
-        chmod 700 ~/.ssh 
-        touch ~/.ssh/authorized_keys
-        chmod 600 ~/.ssh/authorized_keys
+        # create necessary directory and files with correct permissions
+        # check if directory exists, if not create it
+        if ! [[ -d "${HOME}/.ssh" ]]; then
+            mkdir --parents "${HOME}/.ssh"
+        fi 
+        chmod 700 "${HOME}/.ssh" 
+        touch "${HOME}/.ssh/authorized_keys"
+        chmod 600 "${HOME}/.ssh/authorized_keys"
 
         # copy sshd_config into its directory
         cp "./sshd/sshd_config" "/etc/ssh/sshd_config"
@@ -98,7 +105,8 @@ main() {
         systemctl enable fail2ban
         systemctl start fail2ban
     }
-    install_fail2ban
+    # not ready yet, will have to look into syncing on different nodes
+    #install_fail2ban
 
 }
 
