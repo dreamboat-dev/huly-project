@@ -1,3 +1,5 @@
+name: ${PROJECT_NAME:-huly}
+
 x-defaults: &defaults
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
@@ -29,8 +31,18 @@ services:
       retries: ${MONGODB_HEALTHCHECK_RETRIES:-5}
       start_period: ${MONGODB_HEALTHCHECK_START_PERIOD:-30s}
     volumes:
-      - huly-mongodb-data:/data/db
-      - huly-mongodb-conf:/data/configdb
+      - type: volume
+        source: main-volume
+        target: /data/db
+        volume:
+          nocopy: true
+          subpath: mongodb-data
+      - type: volume
+        source: main-volume
+        target: /data/configdb
+        volume:
+          nocopy: true
+          subpath: mongodb-conf
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-huly}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:?}
@@ -52,8 +64,18 @@ services:
       retries: ${ELASTIC_HEALTHCHECK_RETRIES:-5}
       start_period: ${ELASTIC_HEALTHCHECK_START_PERIOD:-30s}
     volumes:
-      - huly-elastic-data:/usr/share/elasticsearch/data
-      - huly-elastic-logs:/usr/share/elasticsearch/logs
+      - type: volume
+        source: main-volume
+        target: /usr/share/elasticsearch/data
+        volume:
+          nocopy: true
+          subpath: elastic-data
+      - type: volume
+        source: main-volume
+        target: /usr/share/elasticsearch/logs
+        volume:
+          nocopy: true
+          subpath: elastic-logs
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
@@ -63,12 +85,17 @@ services:
                   /usr/local/bin/docker-entrypoint.sh eswrapper"
 
   huly-minio:
-    image: "minio/minio:${MINIO_IMAGE_TAG}:-latest"
+    image: "minio/minio:${MINIO_IMAGE_TAG:-latest}"
     container_name: ${MINIO_CONTAINER_NAME:-huly-minio}
     hostname: ${MINIO_HOSTNAME:-huly-minio}
     <<: [*defaults]
     volumes:
-      - huly-minio-data:/data
+      - type: volume
+        source: main-volume
+        target: /data
+        volume:
+          nocopy: true
+          subpath: minio-data
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-huly}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?}
@@ -96,14 +123,14 @@ services:
       - SERVER_PORT=${TRANSACTOR_PORT:-333}
       - SERVER_SECRET=${HULY_SECRET:?}
       - SERVER_CURSOR_MAXTIMEMS=${TRANSACTOR_SERVER_CURSOR_MAXTIMEMS:-30000}
-      - ELASTIC_URL=${ELASTIC_URL:-http://${ELASTIC_HOSTNAME:${ELASTIC_PORT}}}
+      - ELASTIC_URL=${ELASTIC_URL:-http://${ELASTIC_HOSTNAME}:${ELASTIC_PORT}}
       - ELASTIC_INDEX_NAME=${ELASTIC_INDEX_NAME:-huly_storage_index}
       - MONGO_URL=${MONGODB_URL:-mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOSTNAME}:${MONGODB_PORT}}
       - METRICS_CONSOLE=${TRANSACTOR_METRICS_CONSOLE:-false}
       - METRICS_FILE=${TRANSACTOR_METRICS_FILE:-metrics.txt}
       - STORAGE_CONFIG=${STORAGE_CONFIG:-minio|${MINIO_HOSTNAME}?accessKey=${MINIO_ROOT_USER}&secretKey=${MINIO_ROOT_PASSWORD}}
       - REKONI_URL=${REKONI_URL:-http://${REKONI_HOSTNAME}:${REKONI_PORT}}
-      - FRONT_URL=${FRONT_URL:-$http://${FRONT_HOSTNAME}:${FRONT_PORT}}
+      - FRONT_URL=${FRONT_URL:-http://${FRONT_HOSTNAME}:${FRONT_PORT}}
       - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
       - LAST_NAME_FIRST=${HULY_CONFIG_LAST_NAME_FIRST:-true}
       - UPLOAD_URL=${TRANSACTOR_UPLOAD_URL:-${HTTP_SCHEME}://${SERVER_ADDRESS}/files}
@@ -137,7 +164,7 @@ services:
       - MONGO_URL=${MONGODB_URL:-mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOSTNAME}:${MONGODB_PORT}}
       - TRANSACTOR_URL=${TRANSACTOR_URL:-ws://${TRANSACTOR_HOSTNAME}:${TRANSACTOR_PORT};${WS_SCHEME}://${SERVER_ADDRESS}/_transactor}
       - STORAGE_CONFIG=${STORAGE_CONFIG:-minio|${MINIO_HOSTNAME}?accessKey=${MINIO_ROOT_USER}&secretKey=${MINIO_ROOT_PASSWORD}}
-      - FRONT_URL=${FRONT_URL:-$http://${FRONT_HOSTNAME}:${FRONT_PORT}}
+      - FRONT_URL=${FRONT_URL:-http://${FRONT_HOSTNAME}:${FRONT_PORT}}
       - MODEL_ENABLED=${ACCOUNT_MODEL_ENABLED:-*}
       - ACCOUNT_PORT=${ACCOUNT_PORT:-3000}
       - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
@@ -199,7 +226,10 @@ services:
       retries: ${NGINX_HEALTHCHECK_RETRIES:-3}
       start_period: ${NGINX_HEALTHCHECK_START_PERIOD:-10s}
     volumes:
-      - ${NGINX_CONFIG}:/etc/nginx/conf.d/default.conf:ro
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+        read_only: true
     ports:
       - ${NGINX_PORT:-80}:80
     networks:
@@ -215,13 +245,5 @@ networks:
     driver: bridge
 
 volumes:
-  huly-mongodb-data:
-    name: ${MONGODB_DATA_VOLUME:-huly-mongodb-data}
-  huly-mongodb-conf:
-    name: ${MONGODB_CONF_VOLUME:-huly-mongodb-conf}
-  huly-elastic-data:
-    name: ${ELASTIC_DATA_VOLUME:-huly-elastic-data}
-  huly-elastic-logs:
-    name: ${ELASTIC_LOGS_VOLUME:-huly-elastic-logs}
-  huly-minio-data:
-    name: ${MINIO_DATA_VOLUME:-huly-minio-data}
+  main-volume:
+    name: ${PROJECT_NAME:-huly}
