@@ -24,7 +24,6 @@ services:
         "CMD",
         "mongosh", "--eval", "'(db.runCommand({ ping: 1 }).ok ? 0 : 1)'"
       ]
-
       interval: ${MONGODB_HEALTHCHECK_INTERVAL}
       timeout: ${MONGODB_HEALTHCHECK_TIMEOUT}
       retries: ${MONGODB_HEALTHCHECK_RETRIES}
@@ -68,15 +67,6 @@ services:
     container_name: ${MINIO_CONTAINER_NAME}
     hostname: ${MINIO_HOSTNAME}
     <<: [*defaults]
-    healthcheck:
-      test: [
-        "CMD",
-        "curl --user ${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD} http://localhost:9000/minio/health/live"
-      ]
-      interval: ${MINIO_HEALTHCHECK_INTERVAL}
-      timeout: ${MINIO_HEALTHCHECK_TIMEOUT}
-      retries: ${MINIO_HEALTHCHECK_RETRIES}
-      start_period: ${MINIO_HEALTHCHECK_START_PERIOD}
     volumes:
       - minio-data:/data
     environment:
@@ -167,7 +157,7 @@ services:
       - STORAGE_CONFIG=${STORAGE_CONFIG}
       - MODEL_ENABLED=${WORKSPACE_MODEL_ENABLED}
       - ACCOUNTS_URL=${ACCOUNT_URL}
-      - NOTIFY_INBOX_ONLY=true
+      - NOTIFY_INBOX_ONLY=${HULY_CONFIG_NOTIFY_INBOX_ONLY}
     networks:
       - internal-net
       - public-net
