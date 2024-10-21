@@ -87,8 +87,8 @@ main() {
         cp "./sshd/sshd_config" "/etc/ssh/sshd_config"
 
         # enable sshd
-        systemctl enable sshd.service
-        systemctl start sshd.service
+        systemctl enable ssh.service
+        systemctl start ssh.service
     }
     install_ssh
 
