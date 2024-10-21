@@ -103,7 +103,7 @@ services:
       - METRICS_FILE=${TRANSACTOR_METRICS_FILE:-metrics.txt}
       - STORAGE_CONFIG=${STORAGE_CONFIG:-minio|${MINIO_HOSTNAME}?accessKey=${MINIO_ROOT_USER}&secretKey=${MINIO_ROOT_PASSWORD}}
       - REKONI_URL=${REKONI_URL:-http://${REKONI_HOSTNAME}:${REKONI_PORT}}
-      - FRONT_URL=${FRONT_URL:-${HTTP_SCHEME}://${FRONT_HOSTNAME}:${FRONT_PORT}}
+      - FRONT_URL=${FRONT_URL:-$http://${FRONT_HOSTNAME}:${FRONT_PORT}}
       - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
       - LAST_NAME_FIRST=${HULY_CONFIG_LAST_NAME_FIRST:-true}
       - UPLOAD_URL=${TRANSACTOR_UPLOAD_URL:-${HTTP_SCHEME}://${SERVER_ADDRESS}/files}
@@ -137,7 +137,7 @@ services:
       - MONGO_URL=${MONGODB_URL:-mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOSTNAME}:${MONGODB_PORT}}
       - TRANSACTOR_URL=${TRANSACTOR_URL:-ws://${TRANSACTOR_HOSTNAME}:${TRANSACTOR_PORT};${WS_SCHEME}://${SERVER_ADDRESS}/_transactor}
       - STORAGE_CONFIG=${STORAGE_CONFIG:-minio|${MINIO_HOSTNAME}?accessKey=${MINIO_ROOT_USER}&secretKey=${MINIO_ROOT_PASSWORD}}
-      - FRONT_URL=${FRONT_URL:-${HTTP_SCHEME}://${FRONT_HOSTNAME}:${FRONT_PORT}}
+      - FRONT_URL=${FRONT_URL:-$http://${FRONT_HOSTNAME}:${FRONT_PORT}}
       - MODEL_ENABLED=${ACCOUNT_MODEL_ENABLED:-*}
       - ACCOUNT_PORT=${ACCOUNT_PORT:-3000}
       - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
@@ -209,8 +209,10 @@ services:
 networks:
   huly-public-net:
     name: ${PUBLIC_NET:-huly-public-net}
+    driver: bridge
   huly-internal-net:
     name: ${INTERNAL_NET:-huly-internal-net}
+    driver: bridge
 
 volumes:
   huly-mongodb-data:
