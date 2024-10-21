@@ -11,6 +11,8 @@ main() {
         exit 1
     fi
 
+    read --prompt "Enter the Username of your non-sudo user: " non_sudo_username
+
     # copy sources.list
     setup_apt_repos() {
         cp "./apt/sources.list" "/etc/apt/sources.list"
@@ -76,12 +78,12 @@ main() {
 
         # create necessary directory and files with correct permissions
         # check if directory exists, if not create it
-        if ! [[ -d "${HOME}/.ssh" ]]; then
-            mkdir --parents "${HOME}/.ssh"
+        if ! [[ -d "/home/${non_sudo_username}/.ssh" ]]; then
+            mkdir --parents "/home/${non_sudo_username}/.ssh"
         fi 
-        chmod 700 "${HOME}/.ssh" 
-        touch "${HOME}/.ssh/authorized_keys"
-        chmod 600 "${HOME}/.ssh/authorized_keys"
+        chmod 700 "/home/${non_sudo_username}/.ssh" 
+        touch "/home/${non_sudo_username}/.ssh/authorized_keys"
+        chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
 
         # copy sshd_config into its directory
         cp "./sshd/sshd_config" "/etc/ssh/sshd_config"
