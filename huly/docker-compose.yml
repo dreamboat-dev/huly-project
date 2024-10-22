@@ -36,13 +36,13 @@ services:
         target: /data/db
         volume:
           nocopy: true
-          subpath: mongodb-data
+          subpath: ${MONGODB_DATA_SUBVOLUME:-mongodb-data}
       - type: volume
         source: main-volume
         target: /data/configdb
         volume:
           nocopy: true
-          subpath: mongodb-conf
+          subpath: ${MONGODB_CONF_SUBVOLUME:-mongodb-conf}
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-huly}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:?}
@@ -69,13 +69,13 @@ services:
         target: /usr/share/elasticsearch/data
         volume:
           nocopy: true
-          subpath: elastic-data
+          subpath: ${ELASTIC_DATA_SUBVOLUME:-elastic-data}
       - type: volume
         source: main-volume
         target: /usr/share/elasticsearch/logs
         volume:
           nocopy: true
-          subpath: elastic-logs
+          subpath: ${ELASTIC_LOGS_SUBVOLUME:-elastic-logs}
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
@@ -95,7 +95,7 @@ services:
         target: /data
         volume:
           nocopy: true
-          subpath: minio-data
+          subpath: ${MINIO_DATA_SUBVOLUME:-minio-data}
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-huly}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?}
@@ -227,7 +227,7 @@ services:
       start_period: ${NGINX_HEALTHCHECK_START_PERIOD:-10s}
     volumes:
       - type: bind
-        source: ./nginx.conf
+        source: ${NGINX_CONF_PATH}
         target: /etc/nginx/conf.d/default.conf
         read_only: true
     ports:
