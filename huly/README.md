@@ -27,8 +27,9 @@ git checkout
 
 1. Configure `.env`-File
    - If hostnames have been changed, you have to adjust them in `nginx.conf`
-2. Execute `subvolume_creation.sh`
-3. `docker compose up -d`
+1. Make `subvolume_creation.sh` executable: `chmod u+x subvolume_creation.sh`
+1. Execute `subvolume_creation.sh`
+1. `docker compose up -d`
 
 ---
 
