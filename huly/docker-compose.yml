@@ -1,12 +1,12 @@
 name: ${PROJECT_NAME:-huly}
 
-x-defaults: &defaults
+x-defaults: &defaults # default values applied to every container
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
     - "./.env"
   volumes:
-    - /etc/timezone:/etc/timezone:ro
-    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro # text-based representation of hosts timezone
+    - /etc/localtime:/etc/localtime:ro # binary representation of rules used to calculate hosts time relative to unix time
   networks:
     - huly-internal-net
   logging:
@@ -53,6 +53,10 @@ services:
     hostname: ${ELASTIC_HOSTNAME:-huly-elastic}
     <<: [*defaults]
     healthcheck:
+      # status:
+      #   red: share is not allocated
+      #   yellow: primary shard is allocated but replicas are not
+      #   green. all shards are allocated
       test: [
         "CMD-SHELL",
         "curl --silent http://localhost:9200/_cluster/health | grep --quiet '\"status\":\"green\"'"
@@ -77,6 +81,8 @@ services:
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
+    # check if "ingest-attachment" plugin is installed, if not install it
+    # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
       /bin/sh -c "./bin/elasticsearch-plugin list | grep --quiet ingest-attachment ||
                   yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
@@ -99,7 +105,6 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?}
     command: |
       server /data --address ":9000"
-                   --console-address ":9001"
 
   huly-rekoni:
     image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:-v0.6.313}
