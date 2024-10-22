@@ -6,7 +6,7 @@ set -o pipefail
 
 main() {
     # path to .env file for docker-compose.yml
-    local env_file="./.env"
+    local env_file="./stack.env"
 
     # if not root, exit the script
     if [[ "${EUID}" -ne 0 ]]; then

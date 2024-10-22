@@ -3,7 +3,7 @@ name: ${PROJECT_NAME:-huly}
 x-defaults: &defaults
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
-    - "./.env"
+    - "./stack.env"
   volumes:
     - /etc/timezone:/etc/timezone:ro
     - /etc/localtime:/etc/localtime:ro
