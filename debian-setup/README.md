@@ -34,7 +34,6 @@ git checkout
 > The script must be run as root!
 
 ```bash
-chmod u+x setup.sh
 sudo ./setup.sh
 ```
 
