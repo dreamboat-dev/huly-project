@@ -4,6 +4,13 @@ The main component of this is `setup.sh`.
 It is a script intended to be run upon the creation of a server.  
 It configures `apt` repositories, `sshd` and installs some utilities (including docker).
 
+- [Installation](#installation)
+  - [Complete Repository](#complete-repository)
+  - [Only huly subdirectory](#only-huly-subdirectory)
+- [Usage](#usage)
+  - [Config](#config)
+- [Installed Packages](#installed-packages)
+
 ## Installation
 
 ### Complete Repository
