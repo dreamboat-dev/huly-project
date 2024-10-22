@@ -94,22 +94,6 @@ main() {
     }
     install_ssh
 
-    # install and setup fail2ban
-    install_fail2ban() {
-        # install fail2ban package
-        apt install --assume-yes fail2ban
-
-        # copy fail2ban.local and jail.local into its directory
-        cp "./fail2ban/fail2ban.local" "/etc/fail2ban/fail2ban.local"
-        cp "./fail2ban/jail.local" "/etc/fail2ban/jail.local"
-
-        # enable fail2ban
-        systemctl enable fail2ban.service
-        systemctl start fail2ban.service
-    }
-    # not ready yet, will have to look into syncing on different nodes
-    #install_fail2ban
-
 }
 
 main
