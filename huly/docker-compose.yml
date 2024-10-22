@@ -1,12 +1,12 @@
 name: ${PROJECT_NAME:-huly}
 
-x-defaults: &defaults # default values applied to every container
+x-defaults: &defaults
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
     - "./.env"
   volumes:
-    - /etc/timezone:/etc/timezone:ro # text-based representation of hosts timezone
-    - /etc/localtime:/etc/localtime:ro # binary representation of rules used to calculate hosts time relative to unix time
+    - /etc/timezone:/etc/timezone:ro 
+    - /etc/localtime:/etc/localtime:ro
   networks:
     - huly-internal-net
   logging:
