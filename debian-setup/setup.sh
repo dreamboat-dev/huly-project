@@ -13,7 +13,11 @@ main() {
 
     read -rp "Enter the Username of your non-sudo user: " non_sudo_username
 
-    if ! [[ "${non_sudo_username}" =~ ^[a-zA-Z0-9]+$ ]]; then
+    # validate non_sudo_username, allowed:
+    #   - upper- and lowercase letters
+    #   - numbers
+    #   - underscores
+    if ! [[ "${non_sudo_username}" =~ ^[a-zA-Z0-9_]+$ ]]; then
         echo "Invalid username. Only alphanumeric characters and underscores are allowed."
         exit 1
     fi
