@@ -57,7 +57,7 @@ Because of this you need to configure your `.env`-File before executing this scr
 All configuration is done through environment variables.  
 Most have default values (`${VAR:-value}`) but some are required (`${VAR:?}`).  
 
-### Default Settings (`x-defaults`)
+### Default Settings (`docker-compose.yml` > `x-defaults`)
 
 The `&defaults` anchor defines default settings that are used across all services. These settings are:
 - **Restart Policy:** Defaults to `unless-stopped`, can be configured with `${RESTART_POLICY}`
