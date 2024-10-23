@@ -33,7 +33,7 @@ main() {
     verify_package_installation() {
         local command="${1}"
         local package_name="${2}"
-        if ! [[ "$(command -v "${command}" &> /dev/null)" ]]; then
+        if ! command -v "${command}" &> /dev/null; then
             echo "${package_name} hasn't been installed properly. Exiting."
             exit 1
         fi
