@@ -29,6 +29,16 @@ main() {
         exit 1
     fi
 
+    # check if command exists, if not exit
+    verify_package_installation() {
+        local command="${1}"
+        local package_name="${2}"
+        if ! [[ "$(command -v "${command}" &> /dev/null)" ]]; then
+            echo "${package_name} hasn't been installed properly. Exiting."
+            exit 1
+        fi
+    }
+
     # copy sources.list
     setup_apt_repos() {
         # backup sources.list
@@ -71,6 +81,8 @@ main() {
                                  containerd.io \
                                  docker-buildx-plugin \
                                  docker-compose-plugin
+
+        verify_package_installation "docker" "Docker"
     }
     install_docker
 
@@ -82,6 +94,10 @@ main() {
         #                      will display the needed package(s)
         apt install --assume-yes plocate \
                                  command-not-found
+
+        verify_package_installation "plocate" "Plocate"
+        verify_package_installation "command-not-found" "Command-not-found"
+
         # create plocate db
         updatedb
         # update command-not-found db
