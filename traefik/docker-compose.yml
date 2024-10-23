@@ -29,6 +29,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - traefik-net
+      - portainer-net
     env_file:
       - ./.env
 
@@ -36,3 +37,6 @@ networks:
   traefik-net:
     driver: bridge
     name: ${TRAEFIK_NET:-traefik-net}
+
+  portainer-net:
+    external: true
