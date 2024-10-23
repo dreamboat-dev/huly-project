@@ -62,6 +62,8 @@ main() {
         apt update
         apt install --assume-yes ca-certificates \
                                  curl
+        verify_package_installation "curl" "Curl"
+        verify_package_installation "ca-certificates" "Ca-certificates"
         install --mode=0755 \
                 --directory /etc/apt/keyrings
         curl --fail \
@@ -109,6 +111,8 @@ main() {
     install_ssh() {
         # install openssh server package
         apt install --assume-yes openssh-server
+
+        verify_package_installation "ssh" "OpenSSH-Server"
 
         # create necessary directory and files with correct permissions
         # check if directory exists, if not create it
