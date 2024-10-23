@@ -111,7 +111,7 @@ main() {
 
         # enable sshd
         systemctl enable ssh.service
-        systemctl start ssh.service
+        systemctl restart ssh.service
     }
     install_ssh
 
