@@ -30,6 +30,12 @@ main() {
         exit 1
     fi
 
+    # check if user exists, if not exit
+    if ! id -u "${non_sudo_username}" &> /dev/null; then
+        echo "Invalid username. This user does not exist."
+        exit 1
+    fi
+
     # check if command exists, if not exit
     verify_package_installation() {
         local command="${1}"
