@@ -31,6 +31,8 @@ main() {
 
     # copy sources.list
     setup_apt_repos() {
+        # backup sources.list
+        cp "/etc/apt/sources.list" "/etc/apt/sources.list.bak"
         cp "${base_dir}/apt/sources.list" "/etc/apt/sources.list"
         apt update
     }
@@ -102,6 +104,8 @@ main() {
         chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
         chown --recursive "${non_sudo_username}:${non_sudo_username}" "/home/${non_sudo_username}/.ssh"
 
+        # backup sshd_config
+        cp "/etc/ssh/sshd_config" "/etc/ssh/sshd_config.bak" 
         # copy sshd_config into its directory
         cp "${base_dir}/sshd/sshd_config" "/etc/ssh/sshd_config"
 
