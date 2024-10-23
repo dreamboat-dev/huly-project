@@ -131,15 +131,24 @@ main() {
         if ! [[ -d "/home/${non_sudo_username}/.ssh" ]]; then
             mkdir --parents "/home/${non_sudo_username}/.ssh"
         fi
-        chmod 700 "/home/${non_sudo_username}/.ssh" 
-        touch "/home/${non_sudo_username}/.ssh/authorized_keys"
-        chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
+        chmod 700 "/home/${non_sudo_username}/.ssh"
+        # check if authorized_keys already exists, if not create it
+        if ! [[ -f "/home/${non_sudo_username}/.ssh/authorized_keys" ]]; then
+            touch "/home/${non_sudo_username}/.ssh/authorized_keys"
+            chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
+        fi
         chown --recursive "${non_sudo_username}:${non_sudo_username}" "/home/${non_sudo_username}/.ssh"
 
         # backup sshd_config
         cp "/etc/ssh/sshd_config" "/etc/ssh/sshd_config.bak" 
         # copy sshd_config into its directory
         cp "${base_dir}/sshd/sshd_config" "/etc/ssh/sshd_config"
+
+        # check validity of sshd_config
+        if ! sshd -t; then
+            echo "Invalid SSH configuration. Reverting."
+            mv "/etc/ssh/sshd_config.bak" "/etc/ssh/sshd_config"
+        fi
 
         # enable sshd
         systemctl enable ssh.service
