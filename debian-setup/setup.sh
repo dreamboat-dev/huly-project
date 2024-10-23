@@ -96,10 +96,11 @@ main() {
         # check if directory exists, if not create it
         if ! [[ -d "/home/${non_sudo_username}/.ssh" ]]; then
             mkdir --parents "/home/${non_sudo_username}/.ssh"
-        fi 
+        fi
         chmod 700 "/home/${non_sudo_username}/.ssh" 
         touch "/home/${non_sudo_username}/.ssh/authorized_keys"
         chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
+        chown --recursive "${non_sudo_username}:${non_sudo_username}" "/home/${non_sudo_username}/.ssh"
 
         # copy sshd_config into its directory
         cp "${base_dir}/sshd/sshd_config" "/etc/ssh/sshd_config"
