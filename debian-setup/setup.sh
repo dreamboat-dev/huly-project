@@ -4,6 +4,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# send cli output to logfile
+readonly LOGFILE="/var/log/init-script.log"
+exec > >(tee -i "${LOGFILE}")
+exec 2>&1
+
 main() {
     # get base directory of script
     local base_dir
