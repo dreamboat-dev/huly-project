@@ -1,17 +1,36 @@
 services:
   traefik:
-    image: traefik:${VERSION:?}
-    container_name: ${CONTAINER_NAME:-traefik}
-    hostname: ${HOSTNAME:-traefik}
-    restart: ${RESTART_POLICY:-unless-stopped}
+    image: traefik:${IMAGE_TAG:?}
+    container_name: traefik
+    hostname: traefik
+    restart: unless-stopped
     ports:
-      - ${HTTP_PORT:-80}:80
-      - ${DASHBOARD_PORT:-8080}:8080
+      - 80:80
+      - 8080:8080
     volumes:
-      - ${VOLUME_BIND_PATH:?}:/etc/traefik
+    # permissions in container for
+    # uid: 0
+    # gid: 0
+    #
+    # /etc/traefik:
+    # rwxr-xr-x
+    #   - user:  rwx -> read, write, execute -> 7
+    #   - group: r-x -> read, execute -> 5
+    #   - other: r-x -> read, execute -> 5
+    #
+    # fileConfig.yml & traefik.yml:
+    # rw-r--r--
+    #   - user:  rw- -> read, write -> 6
+    #   - group: r-- -> read -> 4
+    #   - other: r-- -> read -> 4
+      - ${TRAEFIK_PATH}:/etc/traefik
+      - ${TRAEFIK_FILECONFIG_YML_PATH:?}:/etc/traefik/fileConfig.yml:ro
+      - ${TRAEFIK_TRAEFIK_YML_PATH:?}:/etc/traefik/traefik.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - traefik-net
+    env_file:
+      - ./.env
 
 networks:
   traefik-net:

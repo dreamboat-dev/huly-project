@@ -1,0 +1,27 @@
+# TODO (dreamboat-dev) change to v3 format
+core:
+  defaultRuleSyntax: v2
+
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+
+serversTransport:
+  insecureSkipVerify: true
+
+entryPoints:
+  http:
+    address: ":80"
+
+providers:
+  providersThrottleDuration: 2s
+  file:
+    filename: etc/traefik/fileConfig.yml
+    watch: true
+
+api:
+  dashboard: true
+  insecure: true
+
+log:
+  level: INFO

@@ -1,0 +1,16 @@
+entryPoints:
+  dashboard:
+    address: "1.2.3.4:8080" # replace 1.2.3.4 with your ip
+
+api:
+  dashboard: true
+  insecure: true  # Remove in production. Allows access without authentication.
+
+providers:
+  file:
+    filename: "/etc/traefik/fileConfig.yml"  # Replace with the actual path to this config file.
+
+log:
+  level: INFO
+
+accessLog: {}
