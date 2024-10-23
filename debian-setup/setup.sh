@@ -10,7 +10,8 @@ main() {
     base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
     # debian version
-    local debian_version=bookworm
+    local debian_version
+    debian_version="$(lsb_release -cs)"
 
     # if not root, exit the script
     if [[ "${EUID}" -ne 0 ]]; then
