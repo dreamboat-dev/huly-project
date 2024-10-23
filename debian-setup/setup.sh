@@ -4,18 +4,58 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# send cli output to logfile
+readonly LOGFILE="/var/log/init-script.log"
+exec > >(tee -i "${LOGFILE}")
+exec 2>&1
+
 main() {
+    # get base directory of script
+    local base_dir
+    base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # debian version
+    local debian_version
+    debian_version="$(lsb_release -cs)"
+
     # if not root, exit the script
     if [[ "${EUID}" -ne 0 ]]; then
         echo "The script must be run as root!"
         exit 1
     fi
 
-    read -p "Enter the Username of your non-sudo user: " non_sudo_username
+    read -rp "Enter the Username of your non-sudo user: " non_sudo_username
+
+    # validate non_sudo_username, allowed:
+    #   - upper- and lowercase letters
+    #   - numbers
+    #   - underscores
+    if ! [[ "${non_sudo_username}" =~ ^[a-zA-Z0-9_]+$ ]]; then
+        echo "Invalid username. Only alphanumeric characters and underscores are allowed."
+        exit 1
+    fi
+
+    # check if user exists, if not exit
+    if ! id -u "${non_sudo_username}" &> /dev/null; then
+        echo "Invalid username. This user does not exist."
+        exit 1
+    fi
+
+    # check if command exists, if not exit
+    verify_package_installation() {
+        local command="${1}"
+        local package_name="${2}"
+        if ! command -v "${command}" &> /dev/null; then
+            echo "${package_name} hasn't been installed properly. Exiting."
+            exit 1
+        fi
+    }
 
     # copy sources.list
     setup_apt_repos() {
-        cp "./apt/sources.list" "/etc/apt/sources.list"
+        # backup sources.list
+        cp "/etc/apt/sources.list" "/etc/apt/sources.list.bak"
+        cp "${base_dir}/apt/sources.list" "/etc/apt/sources.list"
         apt update
     }
     setup_apt_repos
@@ -34,6 +74,8 @@ main() {
         apt update
         apt install --assume-yes ca-certificates \
                                  curl
+        verify_package_installation "curl" "Curl"
+        verify_package_installation "ca-certificates" "Ca-certificates"
         install --mode=0755 \
                 --directory /etc/apt/keyrings
         curl --fail \
@@ -44,7 +86,7 @@ main() {
         chmod a+r /etc/apt/keyrings/docker.asc
 
         # add apt repository
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian ${debian_version} stable" > /etc/apt/sources.list.d/docker.list
         apt update
 
         # install docker packages
@@ -53,6 +95,8 @@ main() {
                                  containerd.io \
                                  docker-buildx-plugin \
                                  docker-compose-plugin
+
+        verify_package_installation "docker" "Docker"
     }
     install_docker
 
@@ -64,6 +108,10 @@ main() {
         #                      will display the needed package(s)
         apt install --assume-yes plocate \
                                  command-not-found
+
+        verify_package_installation "plocate" "Plocate"
+        verify_package_installation "command-not-found" "Command-not-found"
+
         # create plocate db
         updatedb
         # update command-not-found db
@@ -76,21 +124,35 @@ main() {
         # install openssh server package
         apt install --assume-yes openssh-server
 
+        verify_package_installation "ssh" "OpenSSH-Server"
+
         # create necessary directory and files with correct permissions
         # check if directory exists, if not create it
         if ! [[ -d "/home/${non_sudo_username}/.ssh" ]]; then
             mkdir --parents "/home/${non_sudo_username}/.ssh"
-        fi 
-        chmod 700 "/home/${non_sudo_username}/.ssh" 
-        touch "/home/${non_sudo_username}/.ssh/authorized_keys"
-        chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
+        fi
+        chmod 700 "/home/${non_sudo_username}/.ssh"
+        # check if authorized_keys already exists, if not create it
+        if ! [[ -f "/home/${non_sudo_username}/.ssh/authorized_keys" ]]; then
+            touch "/home/${non_sudo_username}/.ssh/authorized_keys"
+            chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
+        fi
+        chown --recursive "${non_sudo_username}:${non_sudo_username}" "/home/${non_sudo_username}/.ssh"
 
+        # backup sshd_config
+        cp "/etc/ssh/sshd_config" "/etc/ssh/sshd_config.bak" 
         # copy sshd_config into its directory
-        cp "./sshd/sshd_config" "/etc/ssh/sshd_config"
+        cp "${base_dir}/sshd/sshd_config" "/etc/ssh/sshd_config"
+
+        # check validity of sshd_config
+        if ! sshd -t; then
+            echo "Invalid SSH configuration. Reverting."
+            mv "/etc/ssh/sshd_config.bak" "/etc/ssh/sshd_config"
+        fi
 
         # enable sshd
         systemctl enable ssh.service
-        systemctl start ssh.service
+        systemctl restart ssh.service
     }
     install_ssh
 
