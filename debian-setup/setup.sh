@@ -5,6 +5,10 @@ set -o nounset
 set -o pipefail
 
 main() {
+    # get base directory of script
+    local base_dir
+    base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
     # if not root, exit the script
     if [[ "${EUID}" -ne 0 ]]; then
         echo "The script must be run as root!"
@@ -24,7 +28,7 @@ main() {
 
     # copy sources.list
     setup_apt_repos() {
-        cp "./apt/sources.list" "/etc/apt/sources.list"
+        cp "${base_dir}/apt/sources.list" "/etc/apt/sources.list"
         apt update
     }
     setup_apt_repos
@@ -95,7 +99,7 @@ main() {
         chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
 
         # copy sshd_config into its directory
-        cp "./sshd/sshd_config" "/etc/ssh/sshd_config"
+        cp "${base_dir}/sshd/sshd_config" "/etc/ssh/sshd_config"
 
         # enable sshd
         systemctl enable ssh.service
