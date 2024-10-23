@@ -11,7 +11,12 @@ main() {
         exit 1
     fi
 
-    read -p "Enter the Username of your non-sudo user: " non_sudo_username
+    read -rp "Enter the Username of your non-sudo user: " non_sudo_username
+
+    if ! [[ "${non_sudo_username}" =~ ^[a-zA-Z0-9]+$ ]]; then
+        echo "Invalid username. Only alphanumeric characters and underscores are allowed."
+        exit 1
+    fi
 
     # copy sources.list
     setup_apt_repos() {
