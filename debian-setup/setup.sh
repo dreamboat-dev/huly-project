@@ -9,6 +9,9 @@ main() {
     local base_dir
     base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+    # debian version
+    local debian_version=bookworm
+
     # if not root, exit the script
     if [[ "${EUID}" -ne 0 ]]; then
         echo "The script must be run as root!"
@@ -57,7 +60,7 @@ main() {
         chmod a+r /etc/apt/keyrings/docker.asc
 
         # add apt repository
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian ${debian_version} stable" > /etc/apt/sources.list.d/docker.list
         apt update
 
         # install docker packages
