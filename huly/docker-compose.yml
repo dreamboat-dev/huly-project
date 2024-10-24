@@ -81,6 +81,7 @@ services:
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
+      - ES_JAVA_OPTS=-Xms4096m -Xmx4096m
     # check if "ingest-attachment" plugin is installed, if not install it
     # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
@@ -89,7 +90,7 @@ services:
                   /usr/local/bin/docker-entrypoint.sh eswrapper"
 
   huly-minio:
-    image: "minio/minio:${MINIO_IMAGE_TAG:-latest}"
+    image: "minio/minio:${MINIO_IMAGE_TAG:-latest}" # TODO change default to fixed tag
     container_name: ${MINIO_CONTAINER_NAME:-huly-minio}
     hostname: ${MINIO_HOSTNAME:-huly-minio}
     <<: [*defaults]
@@ -123,7 +124,7 @@ services:
     hostname: ${TRANSACTOR_HOSTNAME:-huly-transactor}
     <<: [*defaults]
     environment:
-      - SERVER_PORT=${TRANSACTOR_PORT:-333}
+      - SERVER_PORT=${TRANSACTOR_PORT:-3333}
       - SERVER_SECRET=${HULY_SECRET:?}
       - SERVER_CURSOR_MAXTIMEMS=${TRANSACTOR_SERVER_CURSOR_MAXTIMEMS:-30000}
       - ELASTIC_URL=${ELASTIC_URL:-http://${ELASTIC_HOSTNAME}:${ELASTIC_PORT}}
@@ -131,7 +132,7 @@ services:
       - MONGO_URL=${MONGODB_URL:-mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOSTNAME}:${MONGODB_PORT}}
       - METRICS_CONSOLE=${TRANSACTOR_METRICS_CONSOLE:-false}
       - METRICS_FILE=${TRANSACTOR_METRICS_FILE:-metrics.txt}
-      - STORAGE_CONFIG=${STORAGE_CONFIG:-minio|${MINIO_HOSTNAME}?accessKey=${MINIO_ROOT_USER}&secretKey=${MINIO_ROOT_PASSWORD}}
+      - STORAGE_CONFIG=${STORAGE_CONFIG:-minio|${MINIO_HOSTNAME}?accessKey=${MINIO_ROOT_USER}&secretKey=${MINIO_ROOT_PASSWORD}} # TODO add defaults
       - REKONI_URL=${REKONI_URL:-http://${REKONI_HOSTNAME}:${REKONI_PORT}}
       - FRONT_URL=${FRONT_URL:-http://${FRONT_HOSTNAME}:${FRONT_PORT}}
       - ACCOUNTS_URL=${ACCOUNT_URL:-http://${ACCOUNT_HOSTNAME}:${ACCOUNT_PORT}}
@@ -143,8 +144,8 @@ services:
 
   huly-collaborator:
     image: hardcoreeng/collaborator:${HULY_IMAGE_TAG:-v0.6.313}
-    container_name: ${COLLABORATOR_CONTAINER_NAME}
-    hostname: ${COLLABORATOR_HOSTNAME}
+    container_name: ${COLLABORATOR_CONTAINER_NAME} # TODO defaults
+    hostname: ${COLLABORATOR_HOSTNAME} # TODO defaults
     <<: [*defaults]
     environment:
       - COLLABORATOR_PORT=${COLLABORATOR_PORT:-3078}
