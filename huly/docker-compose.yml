@@ -31,8 +31,8 @@ services:
       retries: ${MONGODB_HEALTHCHECK_RETRIES:-5}
       start_period: ${MONGODB_HEALTHCHECK_START_PERIOD:-30s}
     volumes:
-      - mongodb-data:/data/db
-      - mongodb-conf:/data/configdb
+      - ${MONGODB_DATA_PATH:-?}:/data/db
+      - ${MONGODB_CONF_PATH:-?}:/data/configdb
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-huly}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:?}
@@ -56,9 +56,9 @@ services:
       retries: ${ELASTIC_HEALTHCHECK_RETRIES:-5}
       start_period: ${ELASTIC_HEALTHCHECK_START_PERIOD:-30s}
     volumes:
-      - elastic-conf:/usr/share/elasticsearch/config
-      - elastic-data:/usr/share/elasticsearch/data
-      - elastic-logs:/usr/share/elasticsearch/logs
+      - ${ELASTIC_CONF_PATH:?}:/usr/share/elasticsearch/config
+      - ${ELASTIC_DATA_PATH:?}:/usr/share/elasticsearch/data
+      - ${ELASTIC_LOGS_PATH:?}:/usr/share/elasticsearch/logs
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
@@ -76,7 +76,7 @@ services:
     hostname: ${MINIO_HOSTNAME:-huly-minio}
     <<: [*defaults]
     volumes:
-      - minio-data:/data
+      - ${MINIO_DATA_PATH:?}:/data
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-huly}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?}
@@ -99,7 +99,7 @@ services:
     hostname: ${TRANSACTOR_HOSTNAME:-huly-transactor}
     <<: [*defaults]
     volumes:
-      - transactor-logs:/usr/src/app/logs
+      - ${TRANSACTOR_LOGS_PATH:?}:/usr/src/app/logs
     environment:
       - SERVER_PORT=${TRANSACTOR_PORT:-3333}
       - SERVER_SECRET=${HULY_SECRET:?}
@@ -125,7 +125,7 @@ services:
     hostname: ${COLLABORATOR_HOSTNAME:-huly-collaborator}
     <<: [*defaults]
     volumes:
-      - collaborator-logs:/usr/src/app/logs
+      - ${COLLABORATOR_LOGS_PATH:?}:/usr/src/app/logs
     environment:
       - COLLABORATOR_PORT=${COLLABORATOR_PORT:-3078}
       - SECRET=${HULY_SECRET:?}
@@ -142,7 +142,7 @@ services:
     hostname: ${ACCOUNT_HOSTNAME:-huly-account}
     <<: [*defaults]
     volumes:
-      - account-logs:/usr/src/app/logs
+      - ${ACCOUNT_LOGS_PATH:?}:/usr/src/app/logs
     environment:
       - SERVER_PORT=${ACCOUNT_PORT:-3000}
       - SERVER_SECRET=${HULY_SECRET:?}
@@ -163,7 +163,7 @@ services:
     hostname: ${WORKSPACE_HOSTNAME:-huly-workspace}
     <<: [*defaults]
     volumes:
-      - workspace-logs:/usr/src/app/logs
+      - ${WORKSPACE_LOGS_PATH:?}:/usr/src/app/logs
     environment:
       - SERVER_SECRET=${HULY_SECRET:?}
       - MONGO_URL=${MONGODB_URL:-mongodb://${MONGODB_USERNAME:-huly}:${MONGODB_PASSWORD:?}@${MONGODB_HOSTNAME:-huly-mongodb}:${MONGODB_PORT:-27017}}
@@ -182,7 +182,7 @@ services:
     hostname: ${FRONT_HOSTNAME:-huly-front}
     <<: [*defaults]
     volumes:
-      - front-logs:/app/logs
+      - ${FRONT_LOGS_PATH:?}:/app/logs
     environment:
       - SERVER_PORT=${FRONT_PORT:-8080}
       - SERVER_SECRET=${HULY_SECRET:?}
