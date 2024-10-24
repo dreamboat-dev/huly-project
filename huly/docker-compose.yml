@@ -49,7 +49,7 @@ services:
       #   green. all shards are allocated
       test: [
         "CMD-SHELL",
-        "curl --silent http://localhost:9200/_cluster/health | grep --quiet '\"status\":\"green\"'"
+        "curl --silent http://localhost:9200/_cluster/health | grep --quiet --invert-match '\"status\":\"red\"'"
       ]
       interval: ${ELASTIC_HEALTHCHECK_INTERVAL:-20s}
       timeout: ${ELASTIC_HEALTHCHECK_TIMEOUT:-10s}
@@ -61,7 +61,7 @@ services:
     environment:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
-      - ES_JAVA_OPTS=-Xms4096m -Xmx4096m
+      - ES_JAVA_OPTS=${ELASTIC_JAVA_OPTS:--Xms4096m -Xmx4096m}
     # check if "ingest-attachment" plugin is installed, if not install it
     # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
@@ -70,7 +70,7 @@ services:
                   /usr/local/bin/docker-entrypoint.sh eswrapper"
 
   huly-minio:
-    image: "minio/minio:${MINIO_IMAGE_TAG:-latest}" # TODO change default to fixed tag
+    image: minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2024-10-13T13-34-11Z}
     container_name: ${MINIO_CONTAINER_NAME:-huly-minio}
     hostname: ${MINIO_HOSTNAME:-huly-minio}
     <<: [*defaults]
@@ -79,8 +79,7 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-huly}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?}
-    command: |
-      server /data --address ":9000"
+    command: "server /data --address \":9000\""
 
   huly-rekoni:
     image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:-v0.6.313}
