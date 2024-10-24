@@ -49,3 +49,16 @@ iface vmbr0 inet dhcp   # set interface to dhcp
 ```bash
 ifup vmbr0 # reload interface
 ```
+
+### "CPU with AVX support required"
+
+> ```
+> WARNING: MongoDB 5.0+ requires a CPU with AVX support, and your current system does not appear to have that!
+>   see https://jira.mongodb.org/browse/SERVER-54407
+>   see also https://www.mongodb.com/community/forums/t/mongodb-5-0-cpu-intel-g4650-compatibility/116610/2
+>   see also https://github.com/docker-library/mongo/issues/485#issuecomment-891991814
+> ```
+
+This is caused by the VMs CPU not having direct access to the Hosts CPU.  
+To fix this, the CPU type has to be changed to "host" in the proxmox hardware settings of the vm.  
+After that shutdown the CPU (don't reboot! this won't work) and start again.
