@@ -82,7 +82,7 @@ services:
     command: "server /data --address \":9000\""
 
   huly-rekoni:
-    image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:-v0.6.313}
+    image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${REKONI_CONTAINER_NAME:-huly-rekoni}
     hostname: ${REKONI_HOSTNAME:-huly-rekoni}
     <<: [*defaults]
@@ -93,7 +93,7 @@ services:
       - huly-public-net
 
   huly-transactor:
-    image: hardcoreeng/transactor:${HULY_IMAGE_TAG:-v0.6.313}
+    image: hardcoreeng/transactor:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${TRANSACTOR_CONTAINER_NAME:-huly-transactor}
     hostname: ${TRANSACTOR_HOSTNAME:-huly-transactor}
     <<: [*defaults]
@@ -117,7 +117,7 @@ services:
       - huly-public-net
 
   huly-collaborator:
-    image: hardcoreeng/collaborator:${HULY_IMAGE_TAG:-v0.6.313}
+    image: hardcoreeng/collaborator:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${COLLABORATOR_CONTAINER_NAME:-huly-collaborator}
     hostname: ${COLLABORATOR_HOSTNAME:-huly-collaborator}
     <<: [*defaults]
@@ -132,7 +132,7 @@ services:
       - huly-public-net
 
   huly-account:
-    image: hardcoreeng/account:${HULY_IMAGE_TAG:-v0.6.313}
+    image: hardcoreeng/account:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${ACCOUNT_CONTAINER_NAME:-huly-account}
     hostname: ${ACCOUNT_HOSTNAME:-huly-account}
     <<: [*defaults]
@@ -151,7 +151,7 @@ services:
       - huly-public-net
 
   huly-workspace:
-    image: hardcoreeng/workspace:${HULY_IMAGE_TAG:-v0.6.313}
+    image: hardcoreeng/workspace:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${WORKSPACE_CONTAINER_NAME:-huly-workspace}
     hostname: ${WORKSPACE_HOSTNAME:-huly-workspace}
     <<: [*defaults]
@@ -168,7 +168,7 @@ services:
       - huly-public-net
 
   huly-front:
-    image: hardcoreeng/front:${HULY_IMAGE_TAG:-v0.6.313}
+    image: hardcoreeng/front:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${FRONT_CONTAINER_NAME:-huly-front}
     hostname: ${FRONT_HOSTNAME:-huly-front}
     <<: [*defaults]
