@@ -56,6 +56,7 @@ services:
       retries: ${ELASTIC_HEALTHCHECK_RETRIES:-5}
       start_period: ${ELASTIC_HEALTHCHECK_START_PERIOD:-30s}
     volumes:
+      - elastic-conf:/usr/share/elasticsearch/config
       - elastic-data:/usr/share/elasticsearch/data
       - elastic-logs:/usr/share/elasticsearch/logs
     environment:
@@ -97,6 +98,8 @@ services:
     container_name: ${TRANSACTOR_CONTAINER_NAME:-huly-transactor}
     hostname: ${TRANSACTOR_HOSTNAME:-huly-transactor}
     <<: [*defaults]
+    volumes:
+      - transactor-logs:/usr/src/app/logs
     environment:
       - SERVER_PORT=${TRANSACTOR_PORT:-3333}
       - SERVER_SECRET=${HULY_SECRET:?}
@@ -121,6 +124,8 @@ services:
     container_name: ${COLLABORATOR_CONTAINER_NAME:-huly-collaborator}
     hostname: ${COLLABORATOR_HOSTNAME:-huly-collaborator}
     <<: [*defaults]
+    volumes:
+      - collaborator-logs:/usr/src/app/logs
     environment:
       - COLLABORATOR_PORT=${COLLABORATOR_PORT:-3078}
       - SECRET=${HULY_SECRET:?}
@@ -136,6 +141,8 @@ services:
     container_name: ${ACCOUNT_CONTAINER_NAME:-huly-account}
     hostname: ${ACCOUNT_HOSTNAME:-huly-account}
     <<: [*defaults]
+    volumes:
+      - account-logs:/usr/src/app/logs
     environment:
       - SERVER_PORT=${ACCOUNT_PORT:-3000}
       - SERVER_SECRET=${HULY_SECRET:?}
@@ -155,6 +162,8 @@ services:
     container_name: ${WORKSPACE_CONTAINER_NAME:-huly-workspace}
     hostname: ${WORKSPACE_HOSTNAME:-huly-workspace}
     <<: [*defaults]
+    volumes:
+      - workspace-logs:/usr/src/app/logs
     environment:
       - SERVER_SECRET=${HULY_SECRET:?}
       - MONGO_URL=${MONGODB_URL:-mongodb://${MONGODB_USERNAME:-huly}:${MONGODB_PASSWORD:?}@${MONGODB_HOSTNAME:-huly-mongodb}:${MONGODB_PORT:-27017}}
@@ -172,6 +181,8 @@ services:
     container_name: ${FRONT_CONTAINER_NAME:-huly-front}
     hostname: ${FRONT_HOSTNAME:-huly-front}
     <<: [*defaults]
+    volumes:
+      - front-logs:/app/logs
     environment:
       - SERVER_PORT=${FRONT_PORT:-8080}
       - SERVER_SECRET=${HULY_SECRET:?}
@@ -221,7 +232,24 @@ networks:
 
 volumes:
   mongodb-data:
+    name: ${MONGODB_DATA_NAME:-huly-mongodb-data}
   mongodb-conf:
-  elastic-data:
+    name: ${MONGODB_CONF_NAME:-huly-mongodb-conf}
   elastic-logs:
+    name: ${ELASTIC_LOGS_NAME:-huly-elastic-logs}
+  elastic-data:
+    name: ${ELASTIC_DATA_NAME:-huly-elastic-data}
+  elastic-conf:
+    name: ${ELASTIC_CONF_NAME:-huly-elastic-conf}
   minio-data:
+    name: ${MINIO_DATA_NAME:-huly-minio-data}
+  workspace-logs:
+    name: ${WORKSPACE_LOGS_NAME:-huly-workspace-logs}
+  transactor-logs:
+    name: ${TRANSACTOR_LOGS_NAME:-huly-transactor-logs}
+  collaborator-logs:
+    name: ${COLLABORATOR_LOGS_NAME:-huly-collaborator-logs}
+  front-logs:
+    name: ${FRONT_LOGS_NAME:-huly-front-logs}
+  account-logs:
+    name: ${ACCOUNT_LOGS_NAME:-huly-account-logs}
