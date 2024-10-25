@@ -1,0 +1,24 @@
+x-defaults: &defaults
+  restart: ${RESTART_POLICY:-unless-stopped}
+  env_file:
+    - "./.env"
+  volumes:
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+  logging:
+    driver: ${LOGGING_DRIVER:-json-file}
+    options:
+      max-size: ${LOGGING_MAX_SIZE:-10m}
+      max-file: ${LOGGING_MAX_FILE:-3}
+
+services:
+  dockge:
+    image: louislam/dockge:${DOCKGE_IMAGE_TAG:?}
+    ports:
+      - 5001:5001
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKGE_DATA_DIR:?}:/app/data
+      - ${DOCKGE_STACKS_DIR:?}:${DOCKGE_STACKS_DIR:?}
+    environment:
+      - DOCKGE_STACKS_DIR=${DOCKGE_STACKS_DIR:?}
