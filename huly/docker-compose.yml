@@ -4,6 +4,7 @@ x-defaults: &defaults
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
     - "./.env"
+    - "./volumes.env"
   volumes:
     - /etc/timezone:/etc/timezone:ro
     - /etc/localtime:/etc/localtime:ro
@@ -215,7 +216,7 @@ services:
       retries: ${NGINX_HEALTHCHECK_RETRIES:-3}
       start_period: ${NGINX_HEALTHCHECK_START_PERIOD:-10s}
     volumes:
-      - ${NGINX_CONF_PATH:?}:/etc/nginx/conf.d/default.conf:ro
+      - ${NGINX_CONF_PATH:?}:/etc/nginx/conf.d
     ports:
       - ${NGINX_PORT:-80}:80
     networks:
