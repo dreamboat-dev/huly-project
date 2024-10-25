@@ -1,5 +1,3 @@
-name: ${PROJECT_NAME:-huly}
-
 x-defaults: &defaults
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
@@ -15,7 +13,7 @@ x-defaults: &defaults
       max-size: ${LOGGING_MAX_SIZE:-10m}
       max-file: ${LOGGING_MAX_FILE:-3}
   security_opt:
-    - no-new-privileges=true
+    - no-new-privileges:true
 
 x-resource-limits: &resource-limits
   mem_limit: ${SERVICE_MEMORY_LIMIT:-512M}
