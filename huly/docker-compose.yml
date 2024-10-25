@@ -14,13 +14,21 @@ x-defaults: &defaults
     options:
       max-size: ${LOGGING_MAX_SIZE:-10m}
       max-file: ${LOGGING_MAX_FILE:-3}
+  security_opt:
+    - no-new-privileges=true
+
+x-resource-limits: &resource-limits
+  mem_limit: ${SERVICE_MEMORY_LIMIT:-512M}
+  mem_reservation: ${SERVICE_MEMORY_RESERVATION:-256M}
+  cpus: ${SERVICE_CPU_LIMIT:-0.5}
+  pids_limit: ${SERVICE_PIDS_LIMIT:-50}
 
 services:
   huly-mongodb:
     image: mongo:${MONGODB_IMAGE_TAG:-7-jammy}
     container_name: ${MONGODB_CONTAINER_NAME:-huly-mongodb}
     hostname: ${MONGODB_HOSTNAME:-huly-mongodb}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     healthcheck:
       test: [
         "CMD",
@@ -41,7 +49,7 @@ services:
     image: elasticsearch:${ELASTIC_IMAGE_TAG:-7.14.2}
     container_name: ${ELASTIC_CONTAINER_NAME:-huly-elastic}
     hostname: ${ELASTIC_HOSTNAME:-huly-elastic}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     healthcheck:
       # status:
       #   red: share is not allocated
@@ -63,18 +71,25 @@ services:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
       - ES_JAVA_OPTS=${ELASTIC_JAVA_OPTS:--Xms4096m -Xmx4096m}
+      - bootstrap.memory_lock=${ELASTIC_MEMORY_LOCK:-true} # disallow using swap storage
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     # check if "ingest-attachment" plugin is installed, if not install it
     # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
       /bin/sh -c "./bin/elasticsearch-plugin list | grep --quiet ingest-attachment ||
                   yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
                   /usr/local/bin/docker-entrypoint.sh eswrapper"
+    sysctls:
+      - vm.max_map_count=${ELASTIC_VM_MAX_MAP_COUNT:-262144}
 
   huly-minio:
     image: minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2024-10-13T13-34-11Z}
     container_name: ${MINIO_CONTAINER_NAME:-huly-minio}
     hostname: ${MINIO_HOSTNAME:-huly-minio}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     volumes:
       - ${MINIO_DATA_PATH:?}:/data
     environment:
@@ -86,7 +101,7 @@ services:
     image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${REKONI_CONTAINER_NAME:-huly-rekoni}
     hostname: ${REKONI_HOSTNAME:-huly-rekoni}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     environment:
       - SECRET=${HULY_SECRET:?}
     networks:
@@ -97,7 +112,7 @@ services:
     image: hardcoreeng/transactor:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${TRANSACTOR_CONTAINER_NAME:-huly-transactor}
     hostname: ${TRANSACTOR_HOSTNAME:-huly-transactor}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     volumes:
       - ${TRANSACTOR_LOGS_PATH:?}:/usr/src/app/logs
     environment:
@@ -123,7 +138,7 @@ services:
     image: hardcoreeng/collaborator:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${COLLABORATOR_CONTAINER_NAME:-huly-collaborator}
     hostname: ${COLLABORATOR_HOSTNAME:-huly-collaborator}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     volumes:
       - ${COLLABORATOR_LOGS_PATH:?}:/usr/src/app/logs
     environment:
@@ -140,7 +155,7 @@ services:
     image: hardcoreeng/account:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${ACCOUNT_CONTAINER_NAME:-huly-account}
     hostname: ${ACCOUNT_HOSTNAME:-huly-account}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     volumes:
       - ${ACCOUNT_LOGS_PATH:?}:/usr/src/app/logs
     environment:
@@ -161,7 +176,7 @@ services:
     image: hardcoreeng/workspace:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${WORKSPACE_CONTAINER_NAME:-huly-workspace}
     hostname: ${WORKSPACE_HOSTNAME:-huly-workspace}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     volumes:
       - ${WORKSPACE_LOGS_PATH:?}:/usr/src/app/logs
     environment:
@@ -180,7 +195,7 @@ services:
     image: hardcoreeng/front:${HULY_IMAGE_TAG:-v0.6.337}
     container_name: ${FRONT_CONTAINER_NAME:-huly-front}
     hostname: ${FRONT_HOSTNAME:-huly-front}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     volumes:
       - ${FRONT_LOGS_PATH:?}:/app/logs
     environment:
@@ -207,7 +222,7 @@ services:
     image: nginx:${NGINX_IMAGE_TAG:-1.21.3}
     container_name: ${NGINX_CONTAINER_NAME:-huly-nginx}
     hostname: ${NGINX_HOSTNAME:-huly-nginx}
-    <<: [*defaults]
+    <<: [*defaults, *resource-limits]
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost" ]
       interval: ${NGINX_HEALTHCHECK_INTERVAL:-30s}
@@ -229,6 +244,7 @@ networks:
   huly-internal-net:
     name: ${INTERNAL_NET:-huly-internal-net}
     driver: bridge
+    internal: true
 
 volumes:
   mongodb-data:
