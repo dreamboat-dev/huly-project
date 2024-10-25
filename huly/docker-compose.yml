@@ -4,7 +4,6 @@ x-defaults: &defaults
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
     - "./.env"
-    - "./volumes.env"
   volumes:
     - /etc/timezone:/etc/timezone:ro
     - /etc/localtime:/etc/localtime:ro
