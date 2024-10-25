@@ -15,7 +15,7 @@ services:
   dockge:
     image: louislam/dockge:${DOCKGE_IMAGE_TAG:?}
     ports:
-      - 5001:5001
+      - ${DOCKGE_PORT:-5001}:5001
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${DOCKGE_DATA_DIR:?}:/app/data
