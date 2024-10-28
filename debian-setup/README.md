@@ -1,5 +1,7 @@
 # Debian Setup
 
+<!-- TODO update -->
+
 The main component of this is `setup.sh`.  
 It is a script intended to be run upon the creation of a server.  
 It configures `apt` repositories, `sshd` and installs some utilities (including docker).
