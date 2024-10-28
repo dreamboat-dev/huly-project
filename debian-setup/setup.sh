@@ -1,66 +1,87 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2005,SC2155
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
-# send cli output to logfile
-readonly LOGFILE="/var/log/init-script.log"
-exec > >(tee -i "${LOGFILE}")
-exec 2>&1
-
 main() {
-    # get base directory of script
-    local base_dir
-    base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    # source config
+    source ./setup.cfg
+    # source logging framework
+    source ./logging.sh
 
-    # debian version
-    local debian_version
-    debian_version="$(lsb_release -cs)"
-
-    # if not root, exit the script
+    # check if root, else exit
     if [[ "${EUID}" -ne 0 ]]; then
-        echo "The script must be run as root!"
+        log_error "This script must be run as root. Exiting"
         exit 1
     fi
 
-    read -rp "Enter the Username of your non-sudo user: " non_sudo_username
+    # get base path of this script
+    get_base_path() {
+        local dir="$(dirname "${BASH_SOURCE[0]}")"
+        cd "${dir}"
+        echo "$(pwd)"
+    }
+    local base_dir="$(get_base_path)"
 
-    # validate non_sudo_username, allowed:
-    #   - upper- and lowercase letters
-    #   - numbers
-    #   - underscores
-    if ! [[ "${non_sudo_username}" =~ ^[a-zA-Z0-9_]+$ ]]; then
-        echo "Invalid username. Only alphanumeric characters and underscores are allowed."
+    # get distribution and check if it's debian, else exit
+    local distribution_name="$(grep ^ID= /etc/os-release | cut -d= -f2)"
+    if [[ "${distribution_name}" != "debian" ]]; then
+        log_error "This script is only designed for debian. Exiting."
         exit 1
     fi
+    # get version codename and check if it's bookworm, else exit
+    local distribution_version="$(grep ^VERSION_CODENAME= /etc/os-release | cut -d= -f2)"
+    if [[ "${distribution_version}" != "bookworm" ]]; then
+        log_error "This script is only designed for debian bookworm. Exiting."
+        exit 1
+    fi
+
+    # TODO (dreamboat-dev) outsource to config file
+    local non_sudo_username
+    while (true); do
+        read -rp "Enter the username of the non-sudo user you want to use: $(echo $'\n> ')" non_sudo_username
+        if [[ -z "${non_sudo_username:-}" ]]; then
+            echo "You have to set a non-sudo user." >&2
+            continue
+        fi
+        if ! [[ "${non_sudo_username}" =~ ^[a-zA-Z0-9_]+$ ]]; then
+            echo "Invalid username. Only alphanumeric characters and underscores are allowed." >&2
+            continue
+        fi
+        break
+    done
 
     # check if user exists, if not exit
     if ! id -u "${non_sudo_username}" &> /dev/null; then
-        echo "Invalid username. This user does not exist."
+        log_error "This user does not exist. Exiting."
         exit 1
     fi
 
-    # check if command exists, if not exit
-    verify_package_installation() {
-        local command="${1}"
-        local package_name="${2}"
-        if ! command -v "${command}" &> /dev/null; then
-            echo "${package_name} hasn't been installed properly. Exiting."
-            exit 1
-        fi
-    }
-
-    # copy sources.list
-    setup_apt_repos() {
+    setup_apt_sources() {
         # backup sources.list
         cp "/etc/apt/sources.list" "/etc/apt/sources.list.bak"
+        # copy sources list from repo
         cp "${base_dir}/apt/sources.list" "/etc/apt/sources.list"
         apt update
     }
-    setup_apt_repos
+    setup_apt_sources
 
-    # docker installation
+    install_utilities() {
+        apt install --assume-yes ca-certificates \
+                                 curl \
+                                 plocate \
+                                 command-not-found \
+                                 openssh-server
+        # create plocate db
+        updatedb
+        # update command-not-found db
+        update-command-not-found
+    }
+    install_utilities
+
+    # install docker
     install_docker() {
         # remove conflicting packages
         apt remove --assume-yes docker.io \
@@ -71,11 +92,6 @@ main() {
                                 runc
 
         # add docker gpg key
-        apt update
-        apt install --assume-yes ca-certificates \
-                                 curl
-        verify_package_installation "curl" "Curl"
-        verify_package_installation "ca-certificates" "Ca-certificates"
         install --mode=0755 \
                 --directory /etc/apt/keyrings
         curl --fail \
@@ -86,76 +102,50 @@ main() {
         chmod a+r /etc/apt/keyrings/docker.asc
 
         # add apt repository
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian ${debian_version} stable" > /etc/apt/sources.list.d/docker.list
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list
         apt update
 
-        # install docker packages
-        apt install --assume-yes docker-ce \
+        # install packages
+        apt install --assume-yes docer-ce \
                                  docker-ce-cli \
                                  containerd.io \
                                  docker-buildx-plugin \
                                  docker-compose-plugin
-
-        verify_package_installation "docker" "Docker"
     }
     install_docker
 
-    # install additional utilities
-    install_utilities() {
-        apt update
-        # plocate -> MUCH faster "find"
-        # command-not-found -> if trying to enter a command of not installed package,
-        #                      will display the needed package(s)
-        apt install --assume-yes plocate \
-                                 command-not-found
-
-        verify_package_installation "plocate" "Plocate"
-        verify_package_installation "command-not-found" "Command-not-found"
-
-        # create plocate db
-        updatedb
-        # update command-not-found db
-        update-command-not-found
-    }
-    install_utilities
-
-    # install and setup ssh
-    install_ssh() {
-        # install openssh server package
-        apt install --assume-yes openssh-server
-
-        verify_package_installation "ssh" "OpenSSH-Server"
-
-        # create necessary directory and files with correct permissions
+    setup_ssh() {
+        local ssh_user_dir="/home/${non_sudo_username}/.ssh"
         # check if directory exists, if not create it
-        if ! [[ -d "/home/${non_sudo_username}/.ssh" ]]; then
-            mkdir --parents "/home/${non_sudo_username}/.ssh"
+        if ! [[ -d "${ssh_user_dir}" ]]; then
+            mkdir --parents "${ssh_user_dir}"
         fi
-        chmod 700 "/home/${non_sudo_username}/.ssh"
         # check if authorized_keys already exists, if not create it
-        if ! [[ -f "/home/${non_sudo_username}/.ssh/authorized_keys" ]]; then
-            touch "/home/${non_sudo_username}/.ssh/authorized_keys"
-            chmod 600 "/home/${non_sudo_username}/.ssh/authorized_keys"
+        if ! [[ -f "${ssh_user_dir}/authorized_keys" ]]; then
+            touch "${ssh_user_dir}/authorized_keys"
         fi
-        chown --recursive "${non_sudo_username}:${non_sudo_username}" "/home/${non_sudo_username}/.ssh"
+        # setup right user permissions
+        chmod 700 "${ssh_user_dir}"
+        chmod 600 "${ssh_user_dir}/authorized_keys"
+        # make ${non_sudo_username} the owner
+        chown --recursive "${non_sudo_username}:${non_sudo_username}" "${ssh_user_dir}"
 
+        local sshd_config="/etc/ssh/sshd_config"
         # backup sshd_config
-        cp "/etc/ssh/sshd_config" "/etc/ssh/sshd_config.bak" 
-        # copy sshd_config into its directory
-        cp "${base_dir}/sshd/sshd_config" "/etc/ssh/sshd_config"
+        cp "${sshd_config}" "${sshd_config}.bak"
+        # copy sshd_config
+        cp "${base_dir}/sshd/sshd_config" "${sshd_config}"
 
         # check validity of sshd_config
         if ! sshd -t; then
-            echo "Invalid SSH configuration. Reverting."
-            mv "/etc/ssh/sshd_config.bak" "/etc/ssh/sshd_config"
+            log_error "Invalid sshd_config. Reverting."
+            mv "${sshd_config}.bak" "${sshd_config}"
         fi
 
-        # enable sshd
+        # enable and start ssh
         systemctl enable ssh.service
         systemctl restart ssh.service
     }
-    install_ssh
-
 }
 
 main

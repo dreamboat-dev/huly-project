@@ -1,5 +1,3 @@
-name: ${PROJECT_NAME:-huly}
-
 x-defaults: &defaults
   restart: ${RESTART_POLICY:-unless-stopped}
   env_file:
@@ -14,6 +12,8 @@ x-defaults: &defaults
     options:
       max-size: ${LOGGING_MAX_SIZE:-10m}
       max-file: ${LOGGING_MAX_FILE:-3}
+  security_opt:
+    - no-new-privileges:true # restrict privileges, to prevent privilege escalation
 
 services:
   huly-mongodb:
@@ -63,12 +63,19 @@ services:
       - ELASTICSEARCH_PORT_NUMBER=${ELASTIC_PORT:-9200}
       - discovery.type=${ELASTIC_DISCOVERY_TYPE:-single-node}
       - ES_JAVA_OPTS=${ELASTIC_JAVA_OPTS:--Xms4096m -Xmx4096m}
+      - bootstrap.memory_lock=${ELASTIC_MEMORY_LOCK:-true} # disallow using swap storage
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     # check if "ingest-attachment" plugin is installed, if not install it
     # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
       /bin/sh -c "./bin/elasticsearch-plugin list | grep --quiet ingest-attachment ||
                   yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
                   /usr/local/bin/docker-entrypoint.sh eswrapper"
+    sysctls:
+      - vm.max_map_count=${ELASTIC_VM_MAX_MAP_COUNT:-262144}
 
   huly-minio:
     image: minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2024-10-13T13-34-11Z}
@@ -215,7 +222,7 @@ services:
       retries: ${NGINX_HEALTHCHECK_RETRIES:-3}
       start_period: ${NGINX_HEALTHCHECK_START_PERIOD:-10s}
     volumes:
-      - ${NGINX_CONF_PATH:?}:/etc/nginx/conf.d/default.conf:ro
+      - ${NGINX_CONF_PATH:?}:/etc/nginx/conf.d
     ports:
       - ${NGINX_PORT:-80}:80
     networks:
@@ -229,6 +236,7 @@ networks:
   huly-internal-net:
     name: ${INTERNAL_NET:-huly-internal-net}
     driver: bridge
+    internal: true
 
 volumes:
   mongodb-data:
