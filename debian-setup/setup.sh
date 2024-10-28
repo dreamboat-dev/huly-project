@@ -11,6 +11,8 @@ main() {
     # source logging framework
     source ./logging.sh
 
+    # TODO (dreamboat-dev) log events besides "ERROR"
+
     # check if root, else exit
     if [[ "${EUID}" -ne 0 ]]; then
         log_error "This script must be run as root. Exiting"
@@ -77,7 +79,7 @@ main() {
         # create plocate db
         updatedb
         # update command-not-found db
-        update-command-not-found
+        apt update && update-command-not-found
     }
     install_utilities
 
@@ -106,7 +108,7 @@ main() {
         apt update
 
         # install packages
-        apt install --assume-yes docer-ce \
+        apt install --assume-yes docker-ce \
                                  docker-ce-cli \
                                  containerd.io \
                                  docker-buildx-plugin \
@@ -146,6 +148,7 @@ main() {
         systemctl enable ssh.service
         systemctl restart ssh.service
     }
+    setup_ssh
 }
 
 main
