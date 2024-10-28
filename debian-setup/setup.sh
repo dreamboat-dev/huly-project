@@ -6,9 +6,9 @@ set -o nounset
 set -o pipefail
 
 main() {
-    # prepare logging
-    local DESIRED_LOG_LEVEL="INFO"
-    local LOG_FILE="/tmp/init.log"
+    # source config
+    source ./setup.cfg
+    # source logging framework
     source ./logging.sh
 
     # check if root, else exit
@@ -38,6 +38,7 @@ main() {
         exit 1
     fi
 
+    # TODO (dreamboat-dev) outsource to config file
     local non_sudo_username
     while (true); do
         read -rp "Enter the username of the non-sudo user you want to use: $(echo $'\n> ')" non_sudo_username
