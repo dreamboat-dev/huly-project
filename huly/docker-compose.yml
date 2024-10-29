@@ -71,11 +71,10 @@ services:
     # check if "ingest-attachment" plugin is installed, if not install it
     # after that, execute this script: https://github.com/elastic/elasticsearch/blob/main/distribution/docker/src/docker/bin/docker-entrypoint.sh
     command: |
-      /bin/sh -c "./bin/elasticsearch-plugin list | grep --quiet ingest-attachment ||
+      /bin/sh -c "sysctl -w vm.max_map_count=262144;
+                  ./bin/elasticsearch-plugin list | grep --quiet ingest-attachment ||
                   yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
                   /usr/local/bin/docker-entrypoint.sh eswrapper"
-    sysctls:
-      - vm.max_map_count=${ELASTIC_VM_MAX_MAP_COUNT:-262144}
 
   huly-minio:
     image: minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2024-10-13T13-34-11Z}
