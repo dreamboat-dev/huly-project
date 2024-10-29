@@ -7,7 +7,7 @@ set -o pipefail
 
 main() {
     # source config
-    source ./setup.cfg
+    source ./config/setup.cfg
     # source logging framework
     source ./logging.sh
 
@@ -18,14 +18,6 @@ main() {
         log_error "This script must be run as root. Exiting"
         exit 1
     fi
-
-    # get base path of this script
-    get_base_path() {
-        local dir="$(dirname "${BASH_SOURCE[0]}")"
-        cd "${dir}"
-        echo "$(pwd)"
-    }
-    local base_dir="$(get_base_path)"
 
     # get distribution and check if it's debian, else exit
     local distribution_name="$(grep ^ID= /etc/os-release | cut -d= -f2)"
@@ -65,7 +57,7 @@ main() {
         # backup sources.list
         cp "/etc/apt/sources.list" "/etc/apt/sources.list.bak"
         # copy sources list from repo
-        cp "${base_dir}/apt/sources.list" "/etc/apt/sources.list"
+        cp "../debian/sources.list" "/etc/apt/sources.list"
         apt update
     }
     setup_apt_sources
@@ -136,7 +128,7 @@ main() {
         # backup sshd_config
         cp "${sshd_config}" "${sshd_config}.bak"
         # copy sshd_config
-        cp "${base_dir}/sshd/sshd_config" "${sshd_config}"
+        cp "../debian/sshd_config" "${sshd_config}"
 
         # check validity of sshd_config
         if ! sshd -t; then
