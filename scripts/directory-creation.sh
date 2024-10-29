@@ -8,12 +8,12 @@ set -o xtrace
 
 main() {
     # source config
-    source ./directory-creation.cfg
+    source ./config/directory-creation.cfg
     # source logging framework
-    source ../debian-setup/logging.sh
+    source ./logging.sh
 
     # path to .env file for docker-compose.yml
-    local env_file=./.env
+    local env_file="../huly/.env"
 
     # identifiers for start and end of section
     local start_of_section="# === VOLUMES ============================================================================="
@@ -55,7 +55,7 @@ main() {
     chown 1000:0 "${ELASTIC_DATA_PATH}" \
                  "${ELASTIC_LOGS_PATH}"
 
-    cp ./default.conf "${NGINX_CONF_PATH}"
+    cp "../huly/default.conf" "${NGINX_CONF_PATH}"
 }
 
 main
