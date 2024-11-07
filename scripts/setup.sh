@@ -134,6 +134,7 @@ main() {
         if ! sshd -t; then
             log_error "Invalid sshd_config. Reverting."
             mv "${sshd_config}.bak" "${sshd_config}"
+            exit 1
         fi
 
         # enable and start ssh
