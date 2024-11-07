@@ -7,7 +7,13 @@ We have set up two VMs:
 - `debianhuly`
   - will host only huly and it's dependencies
 
-<!-- TODO toc -->
+- [Resources](#resources)
+- [Installation](#installation)
+  - [Partition](#partition)
+    - [`debianmain`](#debianmain)
+    - [`debianhuly`](#debianhuly)
+  - [Packages](#packages)
+- [After install](#after-install)
 
 ## Resources
 
