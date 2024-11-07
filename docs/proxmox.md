@@ -1,5 +1,7 @@
 # Proxmox
 
+Proxmox is an open-source virtualization management platform that allows users to deploy and manage virtual machines, containers, and related resources. It combines two main virtualization technologies: KVM (Kernel-based Virtual Machine) for full virtualization of VMs and LXC (Linux Containers) for lightweight container-based virtualization.
+
 - [After Installation](#after-installation)
   - [Configure Repositories](#configure-repositories)
     - [Remove enterprise repos](#remove-enterprise-repos)
