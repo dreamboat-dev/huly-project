@@ -108,4 +108,9 @@ For MongoDB our CPU needs to have AVX support.
 This isn't the case by default, because the Virtual CPU doesn't have access to the Hosts CPU.
 
 We can fix this by changing the CPU-type to "host" in the Hardware Settings on the Proxmox Web Interface.  
+
+```
+debianhuly > Hardware > Processors > Type: host
+```
+
 After this the Host needs to be powered off and on again (don't just reboot, this won't work).
