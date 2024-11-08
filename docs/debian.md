@@ -47,9 +47,10 @@ This is the config file for the script.
 
 ### `DESIRED_LOG_LEVEL`
 
-Specifies the desired log level for the script.  
+Specifies the desired log level for this script.  
+By default it is set to `INFO`.
 
-Accepted inputs:
+Accepted values:
 
 - `DEBUG`
 - `INFO`
@@ -59,7 +60,8 @@ Accepted inputs:
 
 ### `LOG_FILE`
 
-Specifies the full path for the log file.
+Specifies the full path of the log file.  
+By default it is set to `/tmp/init.log`.
 
 ## non-sudo user prompt
 
