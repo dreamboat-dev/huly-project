@@ -201,25 +201,6 @@ services:
       - huly-internal-net
       - huly-public-net
 
-  huly-nginx:
-    image: nginx:${NGINX_IMAGE_TAG:-1.21.3}
-    container_name: ${NGINX_CONTAINER_NAME:-huly-nginx}
-    hostname: ${NGINX_HOSTNAME:-huly-nginx}
-    <<: [*defaults]
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost" ]
-      interval: ${NGINX_HEALTHCHECK_INTERVAL:-30s}
-      timeout: ${NGINX_HEALTHCHECK_TIMEOUT:-5s}
-      retries: ${NGINX_HEALTHCHECK_RETRIES:-3}
-      start_period: ${NGINX_HEALTHCHECK_START_PERIOD:-10s}
-    volumes:
-      - ${NGINX_CONF_PATH:?}:/etc/nginx/conf.d
-    ports:
-      - ${NGINX_PORT:-80}:80
-    networks:
-      - huly-internal-net
-      - huly-public-net
-
 networks:
   huly-public-net:
     name: ${PUBLIC_NET:-huly-public-net}
