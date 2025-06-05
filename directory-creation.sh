@@ -25,5 +25,4 @@ mkdir --parents "${minio_path}"
 
 # Set permissions for the directories
 # so Elastic can access them
-chmod g+rwx "${elastic_path}"
-chgrp 0 "${elastic_path}"
+chown -R 1000:0 "${elastic_path}"

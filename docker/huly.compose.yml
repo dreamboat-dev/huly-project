@@ -84,6 +84,7 @@ services:
       ACCOUNTS_URL: http://localhost:3000
       SERVER_PORT: 3000
       ACCOUNT_PORT: 3000
+      DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
 
   workspace:
     image: hardcoreeng/workspace:${HULY_IMAGE_TAG:-v0.6.501}
@@ -104,6 +105,7 @@ services:
       TITLE: ${TITLE:-Huly Self Host}
       DEFAULT_LANGUAGE: ${DEFAULT_LANGUAGE:-en}
       DESKTOP_UPDATES_CHANNEL: selfhost
+      DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
 
   fulltext:
     image: hardcoreeng/fulltext:${HULY_IMAGE_TAG:-v0.6.501}
