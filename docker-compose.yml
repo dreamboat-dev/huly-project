@@ -1,0 +1,9 @@
+include:
+- path: ./docker/storage.compose.yml
+- path: ./docker/huly.compose.yml
+- path: ./docker/nginx.compose.yml
+
+networks:
+  huly-net:
+    driver: bridge
+    name: huly-net

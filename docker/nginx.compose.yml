@@ -1,0 +1,18 @@
+x-common-settings: &common-settings
+  restart: ${RESTART_POLICY:-unless-stopped}
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+  networks:
+    - huly-net
+
+services:
+  nginx:
+    image: "nginx:${NGINX_IMAGE_TAG:-1.21.3}"
+    container_name: ${NGINX_NAME:-huly-nginx}
+    hostname: ${NGINX_NAME:-huly-nginx}
+    <<: [*common-settings]
+    ports:
+      - "${HTTP_PORT}:80"
+    volumes:
+      - ../conf/nginx.default.conf:/etc/nginx/conf.d/default.conf

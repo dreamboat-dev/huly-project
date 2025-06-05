@@ -1,0 +1,56 @@
+x-common-settings: &common-settings
+  restart: ${RESTART_POLICY:-unless-stopped}
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+  networks:
+    - huly-net
+
+services:
+  mongodb:
+    image: "mongo:${MONGODB_IMAGE_TAG:-7-jammy}"
+    container_name: ${MONGODB_NAME:-huly-mongodb}
+    hostname: ${MONGODB_NAME:-huly-mongodb}
+    <<: [*common-settings]
+    environment:
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - db:/data/db
+
+  minio:
+    image: "minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2025-05-24T17-08-30Z}"
+    container_name: ${MINIO_NAME:-huly-minio}
+    hostname: ${MINIO_NAME:-huly-minio}
+    <<: [*common-settings]
+    command: server /data --address ":9000" --console-address ":9001"
+    volumes:
+      - files:/data
+
+  elastic:
+    image: "elasticsearch:${ELASTIC_IMAGE_TAG:-7.14.2}"
+    container_name: ${ELASTIC_NAME:-huly-elastic}
+    hostname: ${ELASTIC_NAME:-huly-elastic}
+    <<: [*common-settings]
+    command: |
+      /bin/sh -c "./bin/elasticsearch-plugin list | grep -q ingest-attachment || yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
+      /usr/local/bin/docker-entrypoint.sh eswrapper"
+    volumes:
+      - elastic:/usr/share/elasticsearch/data
+    environment:
+      ELASTICSEARCH_PORT_NUMBER: 9200
+      BITNAMI_DEBUG: true
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xms1024m -Xmx1024m
+      http.cors.enabled: true
+      http.cors.allow-origin: http://localhost:8082
+    healthcheck:
+      interval: 20s
+      retries: 10
+      test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+
+# === VOLUMES ===
+volumes:
+  db:
+  elastic:
+  files:
