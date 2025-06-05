@@ -9,7 +9,7 @@ x-common-settings: &common-settings
 x-common-env: &common-env
   DB_URL: mongodb://mongodb:27017
   MONGO_URL: mongodb://mongodb:27017
-  STORAGE_CONFIG: minio|${MINIO_NAME:-huly-minio}?accessKey=minioadmin&secretKey=minioadmin
+  STORAGE_CONFIG: minio|${MINIO_NAME:-huly-minio}?accessKey=${MINIO_ROOT_USER:-huly}&secretKey=${MINIO_ROOT_PASSWORD:?}
   SECRET: ${HULY_SECRET:-$(openssl rand -hex 32)}
   SERVER_SECRET: ${HULY_SECRET:-$(openssl rand -hex 32)}
 

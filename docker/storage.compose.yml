@@ -16,7 +16,7 @@ services:
       PUID: 1000
       PGID: 1000
     volumes:
-      - db:/data/db
+      - ${STORAGE_BASE_PATH:?}/mongodb:/data/db
 
   minio:
     image: "minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2025-05-24T17-08-30Z}"
@@ -25,7 +25,10 @@ services:
     <<: [*common-settings]
     command: server /data --address ":9000" --console-address ":9001"
     volumes:
-      - files:/data
+      - ${STORAGE_BASE_PATH:?}/minio:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-huly}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?}
 
   elastic:
     image: "elasticsearch:${ELASTIC_IMAGE_TAG:-7.14.2}"
@@ -36,21 +39,17 @@ services:
       /bin/sh -c "./bin/elasticsearch-plugin list | grep -q ingest-attachment || yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
       /usr/local/bin/docker-entrypoint.sh eswrapper"
     volumes:
-      - elastic:/usr/share/elasticsearch/data
+      - ${STORAGE_BASE_PATH:?}/elastic:/usr/share/elasticsearch/data
+      - ../conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     environment:
       ELASTICSEARCH_PORT_NUMBER: 9200
       BITNAMI_DEBUG: true
-      discovery.type: single-node
+      # discovery.type: single-node
       ES_JAVA_OPTS: -Xms1024m -Xmx1024m
-      http.cors.enabled: true
-      http.cors.allow-origin: http://localhost:8082
+      # http.cors.enabled: true
+      # http.cors.allow-origin: http://localhost:8082
     healthcheck:
       interval: 20s
       retries: 10
       test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
 
-# === VOLUMES ===
-volumes:
-  db:
-  elastic:
-  files:

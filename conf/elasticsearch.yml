@@ -1,0 +1,12 @@
+# ======================================================== #
+# DISCLAIMER:                                              #
+# These settings have been copied from the Elastic service #
+# in the following Docker Stack:                           #
+# - https://github.com/hcengineering/huly-selfhost         #
+# ======================================================== #
+
+# Ensures that the node does not connect to other clusters
+discovery.type: single-node
+
+http.cors.enabled: true
+http.cors.allow-origin: http://localhost:8082
