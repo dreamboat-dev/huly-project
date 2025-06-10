@@ -1,4 +1,4 @@
-x-common-settings: &common-settings
+x-common-settings: &huly-common-settings
   restart: ${RESTART_POLICY:-unless-stopped}
   volumes:
     - /etc/localtime:/etc/localtime:ro
@@ -6,33 +6,33 @@ x-common-settings: &common-settings
   networks:
     - huly-net
 
-x-common-env: &common-env
+x-common-env: &huly-common-env
   DB_URL: mongodb://mongodb:27017
   MONGO_URL: mongodb://mongodb:27017
   STORAGE_CONFIG: minio|${MINIO_NAME:-huly-minio}?accessKey=${MINIO_ROOT_USER:-huly}&secretKey=${MINIO_ROOT_PASSWORD:?}
   SECRET: ${HULY_SECRET:-$(openssl rand -hex 32)}
   SERVER_SECRET: ${HULY_SECRET:-$(openssl rand -hex 32)}
 
-x-fulltext-url: &fulltext-url
+x-fulltext-url: &huly-fulltext-url
   FULLTEXT_URL: http://${FULLTEXT_NAME:-huly-fulltext}:4700
 
-x-accounts-url: &accounts-url
+x-accounts-url: &huly-accounts-url
   ACCOUNTS_URL: http://${ACCOUNT_NAME:-huly-account}:3000
 
-x-stats-url: &stats-url
+x-stats-url: &huly-stats-url
   STATS_URL: http://${STATS_NAME:-huly-stats}:4900
 
-x-last-name-first: &last-name-first
+x-last-name-first: &huly-last-name-first
   LAST_NAME_FIRST: ${LAST_NAME_FIRST:-true}
 
-x-transactor-url: &transactor-url
+x-transactor-url: &huly-transactor-url
   TRANSACTOR_URL: ws://${TRANSACTOR_NAME:-huly-transactor}:3333;ws${SECURE:+s}://${HOST_ADDRESS}/_transactor
 
-x-elastic-urls: &elastic-urls
+x-elastic-urls: &huly-elastic-urls
   ELASTIC_URL: http://${ELASTIC_NAME:-huly-elastic}:9200
   FULLTEXT_DB_URL: http://${ELASTIC_NAME:-huly-elastic}:9200
 
-x-endpoints: &endpoints
+x-endpoints: &huly-endpoints
   LOVE_ENDPOINT: http${SECURE:+s}://${HOST_ADDRESS}/_love
   ACCOUNTS_URL: http${SECURE:+s}://${HOST_ADDRESS}/_accounts
   REKONI_URL: http${SECURE:+s}://${HOST_ADDRESS}/_rekoni
@@ -48,17 +48,17 @@ services:
     image: hardcoreeng/rekoni-service:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${REKONI_NAME:-huly-rekoni}
     hostname: ${REKONI_NAME:-huly-rekoni}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env]
+      <<: [*huly-common-env]
 
   transactor:
     image: hardcoreeng/transactor:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${TRANSACTOR_NAME:-huly-transactor}
     hostname: ${TRANSACTOR_NAME:-huly-transactor}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env, *stats-url, *fulltext-url, *accounts-url, *last-name-first]
+      <<: [*huly-common-env, *huly-stats-url, *huly-fulltext-url, *huly-accounts-url, *huly-last-name-first]
       SERVER_PORT: 3333
       SERVER_CURSOR_MAXTIMEMS: 30000
       FRONT_URL: http://localhost:8087
@@ -67,18 +67,18 @@ services:
     image: hardcoreeng/collaborator:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${COLLABORATOR_NAME:-huly-collaborator}
     hostname: ${COLLABORATOR_NAME:-huly-collaborator}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env, *stats-url, *accounts-url]
+      <<: [*huly-common-env, *huly-stats-url, *huly-accounts-url]
       COLLABORATOR_PORT: 3078
 
   account:
     image: hardcoreeng/account:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${ACCOUNT_NAME:-huly-account}
     hostname: ${ACCOUNT_NAME:-huly-account}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env, *stats-url, *transactor-url]
+      <<: [*huly-common-env, *huly-stats-url, *huly-transactor-url]
       FRONT_URL: http://${FRONT_NAME:-huly-front}:8080
       MODEL_ENABLED: "*"
       ACCOUNTS_URL: http://localhost:3000
@@ -90,17 +90,17 @@ services:
     image: hardcoreeng/workspace:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${WORKSPACE_NAME:-huly-workspace}
     hostname: ${WORKSPACE_NAME:-huly-workspace}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env, *stats-url, *fulltext-url, *accounts-url, *transactor-url]
+      <<: [*huly-common-env, *huly-stats-url, *huly-fulltext-url, *huly-accounts-url, *huly-transactor-url]
 
   front:
     image: hardcoreeng/front:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${FRONT_NAME:-huly-front}
     hostname: ${FRONT_NAME:-huly-front}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env, *last-name-first, *elastic-urls, *endpoints]
+      <<: [*huly-common-env, *huly-last-name-first, *huly-elastic-urls, *huly-endpoints]
       SERVER_PORT: 8080
       TITLE: ${TITLE:-Huly Self Host}
       DEFAULT_LANGUAGE: ${DEFAULT_LANGUAGE:-en}
@@ -111,17 +111,19 @@ services:
     image: hardcoreeng/fulltext:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${FULLTEXT_NAME:-huly-fulltext}
     hostname: ${FULLTEXT_NAME:-huly-fulltext}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env, *accounts-url, *stats-url, *elastic-urls]
+      <<: [*huly-common-env, *huly-accounts-url, *huly-stats-url, *huly-elastic-urls]
       ELASTIC_INDEX_NAME: huly_storage_index
       REKONI_URL: http://${REKONI_NAME:-huly-rekoni}:4004
+    depends_on:
+      - elastic
 
   stats:
     image: hardcoreeng/stats:${HULY_IMAGE_TAG:-v0.6.501}
     container_name: ${STATS_NAME:-huly-stats}
     hostname: ${STATS_NAME:-huly-stats}
-    <<: [*common-settings]
+    <<: [*huly-common-settings]
     environment:
-      <<: [*common-env]
+      <<: [*huly-common-env]
       PORT: 4900

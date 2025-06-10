@@ -1,4 +1,4 @@
-x-common-settings: &common-settings
+x-common-settings: &storage-common-settings
   restart: ${RESTART_POLICY:-unless-stopped}
   volumes:
     - /etc/localtime:/etc/localtime:ro
@@ -11,7 +11,7 @@ services:
     image: "mongo:${MONGODB_IMAGE_TAG:-7-jammy}"
     container_name: ${MONGODB_NAME:-huly-mongodb}
     hostname: ${MONGODB_NAME:-huly-mongodb}
-    <<: [*common-settings]
+    <<: [*storage-common-settings]
     environment:
       PUID: 1000
       PGID: 1000
@@ -22,7 +22,7 @@ services:
     image: "minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2025-05-24T17-08-30Z}"
     container_name: ${MINIO_NAME:-huly-minio}
     hostname: ${MINIO_NAME:-huly-minio}
-    <<: [*common-settings]
+    <<: [*storage-common-settings]
     command: server /data --address ":9000" --console-address ":9001"
     volumes:
       - ${STORAGE_BASE_PATH:?}/minio:/data
@@ -34,7 +34,7 @@ services:
     image: "elasticsearch:${ELASTIC_IMAGE_TAG:-7.14.2}"
     container_name: ${ELASTIC_NAME:-huly-elastic}
     hostname: ${ELASTIC_NAME:-huly-elastic}
-    <<: [*common-settings]
+    <<: [*storage-common-settings]
     command: |
       /bin/sh -c "./bin/elasticsearch-plugin list | grep -q ingest-attachment || yes | ./bin/elasticsearch-plugin install --silent ingest-attachment;
       /usr/local/bin/docker-entrypoint.sh eswrapper"
@@ -52,4 +52,3 @@ services:
       interval: 20s
       retries: 10
       test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
-

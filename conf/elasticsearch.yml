@@ -10,3 +10,7 @@ discovery.type: single-node
 
 http.cors.enabled: true
 http.cors.allow-origin: http://localhost:8082
+
+network.host: 0.0.0.0
+http.host: 0.0.0.0
+transport.host: 0.0.0.0
